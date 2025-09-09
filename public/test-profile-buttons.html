@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Button Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success-btn { background-color: #28a745; }
+        .success-btn:hover { background-color: #218838; }
+        .log {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Profile Button Test</h1>
+    <p>This page will test if the profile save buttons are working and make actual API calls.</p>
+    
+    <div class="test-section">
+        <h3>Test 1: Button Click Detection</h3>
+        <button onclick="testButtonClick()">Test Button Click</button>
+        <div id="clickStatus" class="status info">Click the button to test</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Profile Save Simulation</h3>
+        <button class="success-btn" onclick="simulateProfileSave()">Simulate handleSaveProfile</button>
+        <div id="saveStatus" class="status info">This will simulate the exact profile save process</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: Actual Profile Save</h3>
+        <button class="success-btn" onclick="actualProfileSave()">Make Real PUT Request</button>
+        <div id="realSaveStatus" class="status info">This will make a real PUT request to save profile</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Log</h3>
+        <button onclick="clearLog()">Clear Log</button>
+        <div id="log" class="log">Test log will appear here...
+</div>
+    </div>
+    
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`🔘 PROFILE: ${message}`);
+        }
+        
+        function setStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = 'Log cleared...\n';
+        }
+        
+        function testButtonClick() {
+            log('✅ Button click test successful!');
+            console.log('🔘 PROFILE: Save button clicked! (test)');
+            console.log('🔘 PROFILE: isSaving state: false (test)');
+            console.log('🔘 PROFILE: Current profileData: {test: "data"} (test)');
+            setStatus('clickStatus', 'Button click works!', 'success');
+        }
+        
+        async function simulateProfileSave() {
+            try {
+                log('🚀 PROFILE: handleSaveProfile called (simulation)');
+                console.log('🔘 PROFILE: Save button clicked! (simulation)');
+                console.log('🔘 PROFILE: loading state: false (simulation)');
+                
+                // Simulate the exact logic from the profile page
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    log('❌ No auth token found');
+                    setStatus('saveStatus', 'No authentication token', 'error');
+                    return;
+                }
+                
+                log('✅ Auth token found, simulating save process');
+                log('👤 PROFILE: User found, proceeding with save (simulation)');
+                
+                const profileData = {
+                    first_name: 'Test',
+                    last_name: 'User',
+                    phone: '+1234567890',
+                    bio: 'Test bio from button test',
+                    birthdate: '',
+                    gender: '',
+                    preferences: {
+                        newsletter: true,
+                        sms_notifications: false,
+                        email_notifications: true,
+                        preferred_language: 'en',
+                        currency: 'PHP'
+                    }
+                };
+                
+                console.log('🔘 PROFILE: Current profileData:', profileData);
+                log('📝 PROFILE: Sending request body: ' + JSON.stringify(profileData));
+                log('🔗 PROFILE: Making PUT request to /api/profiles (simulation)');
+                
+                setStatus('saveStatus', 'Profile save simulation completed', 'success');
+                
+            } catch (error) {
+                log('❌ Error in profile save simulation: ' + error.message);
+                console.error('🔘 PROFILE: Error in handleSaveProfile:', error);
+                setStatus('saveStatus', 'Profile save simulation failed', 'error');
+            }
+        }
+        
+        async function actualProfileSave() {
+            try {
+                log('💾 Making actual PUT request to /api/profiles');
+                console.log('🔘 PROFILE: Making real PUT request');
+                
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    log('❌ No auth token for real save');
+                    setStatus('realSaveStatus', 'No authentication token', 'error');
+                    return;
+                }
+                
+                const profileData = {
+                    first_name: 'ButtonTest',
+                    last_name: 'User',
+                    phone: '+9876543210',
+                    bio: 'Real PUT request from button test page',
+                    birthdate: '',
+                    gender: '',
+                    preferences: {
+                        newsletter: true,
+                        sms_notifications: false,
+                        email_notifications: true,
+                        preferred_language: 'en',
+                        currency: 'PHP'
+                    }
+                };
+                
+                log('📝 Making PUT request with data: ' + JSON.stringify(profileData));
+                console.log('🔘 PROFILE: PUT request data:', profileData);
+                
+                setStatus('realSaveStatus', 'Making PUT request...', 'info');
+                
+                const response = await fetch('/api/profiles', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(profileData)
+                });
+                
+                log(`📡 PUT Response status: ${response.status}`);
+                console.log('🔘 PROFILE: PUT response status:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    log('✅ Real PUT request successful!');
+                    log('📋 PUT result: ' + JSON.stringify(result));
+                    console.log('🔘 PROFILE: PUT request successful:', result);
+                    setStatus('realSaveStatus', 'Real PUT request successful!', 'success');
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Real PUT request failed: ${response.status} - ${errorText}`);
+                    console.error('🔘 PROFILE: PUT request failed:', response.status, errorText);
+                    setStatus('realSaveStatus', 'Real PUT request failed', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Error in real PUT request: ${error.message}`);
+                console.error('🔘 PROFILE: Error in real PUT request:', error);
+                setStatus('realSaveStatus', 'Real PUT request error', 'error');
+            }
+        }
+        
+        // Test JavaScript errors
+        window.addEventListener('error', function(e) {
+            log('❌ JavaScript Error: ' + e.message);
+            log('❌ Error at: ' + e.filename + ':' + e.lineno);
+            console.error('🔘 PROFILE: JavaScript Error:', e);
+        });
+        
+        // Test if page loads correctly
+        window.addEventListener('load', function() {
+            log('✅ Button test page loaded successfully');
+            console.log('🔘 PROFILE: Button test page ready');
+            
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                log('✅ Auth token found in localStorage');
+                console.log('🔘 PROFILE: Auth token available');
+            } else {
+                log('❌ No auth token found in localStorage');
+                console.log('🔘 PROFILE: No auth token available');
+            }
+        });
+    </script>
+</body>
+</html>

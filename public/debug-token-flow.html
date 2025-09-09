@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Token Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .info {
+            color: #0c5460;
+            background: #d1ecf1;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Token Flow Debug Tool</h1>
+        <p>This tool helps debug the JWT token generation and storage flow.</p>
+        
+        <button class="button" onclick="checkLocalStorage()">Check localStorage</button>
+        <button class="button" onclick="generateToken()">Generate New Token</button>
+        <button class="button" onclick="testProfileAPI()">Test Profile API</button>
+        <button class="button" onclick="testAddressesAPI()">Test Addresses API</button>
+        <button class="button" onclick="clearStorage()">Clear All Storage</button>
+        
+        <div id="output"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = message;
+            output.appendChild(div);
+        }
+
+        function checkLocalStorage() {
+            log('🔍 Checking localStorage...', 'info');
+            
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                log(`✅ Token found in localStorage`, 'success');
+                log(`📏 Token length: ${token.length}`, 'info');
+                log(`🔤 Token preview: ${token.substring(0, 50)}...`, 'info');
+                
+                // Try to decode the JWT header
+                try {
+                    const parts = token.split('.');
+                    if (parts.length === 3) {
+                        const header = JSON.parse(atob(parts[0]));
+                        const payload = JSON.parse(atob(parts[1]));
+                        log(`📋 Token header: <pre>${JSON.stringify(header, null, 2)}</pre>`, 'info');
+                        log(`📋 Token payload: <pre>${JSON.stringify(payload, null, 2)}</pre>`, 'info');
+                    } else {
+                        log(`❌ Invalid JWT format - expected 3 parts, got ${parts.length}`, 'error');
+                    }
+                } catch (e) {
+                    log(`❌ Failed to decode JWT: ${e.message}`, 'error');
+                }
+            } else {
+                log('❌ No token found in localStorage', 'error');
+            }
+            
+            // Check all localStorage items
+            log('📦 All localStorage items:', 'info');
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                log(`  ${key}: ${value ? value.substring(0, 100) + (value.length > 100 ? '...' : '') : 'null'}`, 'info');
+            }
+        }
+
+        async function generateToken() {
+            log('🔄 Generating new JWT token...', 'info');
+            
+            try {
+                const response = await fetch('/api/auth/session-to-jwt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.token) {
+                        localStorage.setItem('auth_token', data.token);
+                        log('✅ New JWT token generated and stored successfully', 'success');
+                        log(`📏 New token length: ${data.token.length}`, 'info');
+                        log(`🔤 New token preview: ${data.token.substring(0, 50)}...`, 'info');
+                    } else {
+                        log('❌ No token in response', 'error');
+                        log(`📋 Response: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Failed to generate token: ${response.status} ${response.statusText}`, 'error');
+                    log(`📋 Error response: ${errorText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error generating token: ${error.message}`, 'error');
+            }
+        }
+
+        async function testProfileAPI() {
+            log('🧪 Testing Profile API...', 'info');
+            
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                log('❌ No token found. Generate a token first.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/profiles', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Profile API call successful', 'success');
+                    log(`📋 Profile data: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Profile API call failed: ${response.status} ${response.statusText}`, 'error');
+                    log(`📋 Error response: ${errorText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error calling Profile API: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAddressesAPI() {
+            log('🧪 Testing Addresses API...', 'info');
+            
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                log('❌ No token found. Generate a token first.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/addresses', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Addresses API call successful', 'success');
+                    log(`📋 Addresses data: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'info');
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Addresses API call failed: ${response.status} ${response.statusText}`, 'error');
+                    log(`📋 Error response: ${errorText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error calling Addresses API: ${error.message}`, 'error');
+            }
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            log('🧹 All storage cleared', 'success');
+        }
+
+        // Auto-check localStorage on page load
+        window.onload = function() {
+            log('🚀 Debug tool loaded', 'info');
+            checkLocalStorage();
+        };
+    </script>
+</body>
+</html>

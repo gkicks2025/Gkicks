@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Profile Save</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: white; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .log { background: #2a2a2a; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { border-left: 4px solid #4CAF50; }
+        .error { border-left: 4px solid #f44336; }
+        .info { border-left: 4px solid #2196F3; }
+        button { padding: 10px 20px; margin: 10px 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .primary { background: #007bff; color: white; }
+        input, textarea { padding: 8px; margin: 5px 0; width: 300px; background: #333; color: white; border: 1px solid #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Profile Save Debug Tool</h1>
+        
+        <div>
+            <h3>Test Profile Update</h3>
+            <div>
+                <label>First Name:</label><br>
+                <input type="text" id="firstName" value="Test First Name">
+            </div>
+            <div>
+                <label>Last Name:</label><br>
+                <input type="text" id="lastName" value="Test Last Name">
+            </div>
+            <div>
+                <label>Phone:</label><br>
+                <input type="text" id="phone" value="+1234567890">
+            </div>
+            <div>
+                <label>Bio:</label><br>
+                <textarea id="bio" rows="3">This is a test bio update</textarea>
+            </div>
+            <button class="primary" onclick="testProfileUpdate()">Test Profile Update</button>
+            <button class="primary" onclick="checkCurrentProfile()">Check Current Profile</button>
+        </div>
+        
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type}`;
+            logDiv.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            logsDiv.appendChild(logDiv);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        async function checkCurrentProfile() {
+            log('🔍 Checking current profile...', 'info');
+            
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    log('❌ No auth token found in localStorage', 'error');
+                    return;
+                }
+                
+                log(`✅ Auth token found: ${token.substring(0, 20)}...`, 'success');
+                
+                const response = await fetch('/api/profiles', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (response.ok) {
+                    const profile = await response.json();
+                    log(`✅ Current profile: <pre>${JSON.stringify(profile, null, 2)}</pre>`, 'success');
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Failed to fetch profile: ${response.status} - ${errorText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error checking profile: ${error.message}`, 'error');
+            }
+        }
+
+        async function testProfileUpdate() {
+            log('🧪 Testing profile update...', 'info');
+            
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    log('❌ No auth token found in localStorage', 'error');
+                    return;
+                }
+                
+                const updateData = {
+                    first_name: document.getElementById('firstName').value.trim(),
+                    last_name: document.getElementById('lastName').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    birthdate: '',
+                    gender: '',
+                    bio: document.getElementById('bio').value.trim(),
+                    avatar_url: '',
+                    preferences: {
+                        newsletter: true,
+                        sms_notifications: false,
+                        email_notifications: true,
+                        preferred_language: 'en',
+                        currency: 'PHP'
+                    }
+                };
+                
+                log(`📝 Sending update data: <pre>${JSON.stringify(updateData, null, 2)}</pre>`, 'info');
+                
+                const response = await fetch('/api/profiles', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                log(`📊 Response status: ${response.status}`, 'info');
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    log(`✅ Profile update successful: <pre>${JSON.stringify(result, null, 2)}</pre>`, 'success');
+                    
+                    // Check updated profile
+                    setTimeout(() => checkCurrentProfile(), 1000);
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Profile update failed: ${response.status} - ${errorText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error updating profile: ${error.message}`, 'error');
+            }
+        }
+        
+        // Auto-check profile on load
+        window.onload = () => {
+            log('🚀 Debug tool loaded', 'info');
+            checkCurrentProfile();
+        };
+    </script>
+</body>
+</html>

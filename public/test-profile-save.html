@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Save Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Profile Save Test</h1>
+    
+    <div class="form-group">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" value="Test First">
+    </div>
+    
+    <div class="form-group">
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" value="Test Last">
+    </div>
+    
+    <div class="form-group">
+        <label for="phone">Phone:</label>
+        <input type="text" id="phone" value="+1234567890">
+    </div>
+    
+    <div class="form-group">
+        <label for="bio">Bio:</label>
+        <textarea id="bio" rows="3">Test bio for profile save</textarea>
+    </div>
+    
+    <button onclick="testProfileSave()">Test Profile Save</button>
+    <button onclick="getCurrentProfile()">Get Current Profile</button>
+    <button onclick="clearLog()">Clear Log</button>
+    
+    <div id="log" class="log">Ready to test profile save...
+</div>
+    
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = 'Log cleared...\n';
+        }
+        
+        async function testProfileSave() {
+            try {
+                log('🚀 Starting profile save test...');
+                
+                // Get form data
+                const profileData = {
+                    first_name: document.getElementById('firstName').value,
+                    last_name: document.getElementById('lastName').value,
+                    phone: document.getElementById('phone').value,
+                    bio: document.getElementById('bio').value,
+                    birthdate: '',
+                    gender: '',
+                    avatar_url: '',
+                    preferences: {
+                        newsletter: true,
+                        sms_notifications: false,
+                        email_notifications: true,
+                        preferred_language: 'en',
+                        currency: 'PHP'
+                    }
+                };
+                
+                log('📝 Profile data to save: ' + JSON.stringify(profileData, null, 2));
+                
+                // Get token from localStorage
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    log('❌ No authentication token found in localStorage');
+                    return;
+                }
+                
+                log('🔑 Token found, making PUT request...');
+                
+                // Make PUT request
+                const response = await fetch('/api/profiles', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(profileData)
+                });
+                
+                log(`📡 Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    log('✅ Profile saved successfully!');
+                    log('📋 Response: ' + JSON.stringify(result, null, 2));
+                } else {
+                    const error = await response.text();
+                    log(`❌ Profile save failed: ${error}`);
+                }
+                
+            } catch (error) {
+                log(`❌ Error during profile save: ${error.message}`);
+                console.error('Profile save error:', error);
+            }
+        }
+        
+        async function getCurrentProfile() {
+            try {
+                log('🔍 Fetching current profile...');
+                
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    log('❌ No authentication token found');
+                    return;
+                }
+                
+                const response = await fetch('/api/profiles', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const profile = await response.json();
+                    log('✅ Current profile fetched:');
+                    log(JSON.stringify(profile, null, 2));
+                    
+                    // Update form with current data
+                    document.getElementById('firstName').value = profile.first_name || '';
+                    document.getElementById('lastName').value = profile.last_name || '';
+                    document.getElementById('phone').value = profile.phone || '';
+                    document.getElementById('bio').value = profile.bio || '';
+                } else {
+                    log(`❌ Failed to fetch profile: ${response.status}`);
+                }
+                
+            } catch (error) {
+                log(`❌ Error fetching profile: ${error.message}`);
+            }
+        }
+        
+        // Load current profile on page load
+        window.addEventListener('load', getCurrentProfile);
+    </script>
+</body>
+</html>

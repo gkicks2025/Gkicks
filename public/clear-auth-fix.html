@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Auth & Test Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .title {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .danger {
+            background: #dc3545;
+        }
+        .danger:hover {
+            background: #c82333;
+        }
+        .success {
+            background: #28a745;
+        }
+        .success:hover {
+            background: #218838;
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            text-align: left;
+        }
+        .success-status {
+            background: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🔧 Clear Auth & Test Fix</h1>
+        <p>This will clear any malformed authentication tokens and test the new Google OAuth flow.</p>
+        
+        <button class="button danger" onclick="clearAndTest()">Clear Auth Data & Test</button>
+        <br>
+        <a href="/auth" class="button success">Go to Google Sign-In</a>
+        <a href="/profile" class="button">Test Profile Page</a>
+        
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function clearAndTest() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = 'Clearing authentication data...';
+            
+            try {
+                // Clear all auth data
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Clear cookies by setting them to expire
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                statusDiv.innerHTML = '✅ Authentication data cleared successfully!\n\nNext steps:\n1. Click "Go to Google Sign-In"\n2. Sign in with Google\n3. Click "Test Profile Page" to verify the fix';
+                statusDiv.className = 'status success-status';
+                
+            } catch (error) {
+                statusDiv.innerHTML = '❌ Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

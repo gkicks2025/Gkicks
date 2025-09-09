@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Authentication & Wishlist</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .debug-title {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .debug-data {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Authentication & Wishlist</h1>
+    
+    <div class="debug-section">
+        <h2 class="debug-title">Authentication Token</h2>
+        <div id="auth-token" class="debug-data">Loading...</div>
+        <button class="button" onclick="checkAuthToken()">Refresh Token Info</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2 class="debug-title">localStorage Data</h2>
+        <div id="localStorage-data" class="debug-data">Loading...</div>
+        <button class="button" onclick="checkLocalStorage()">Refresh localStorage</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2 class="debug-title">API Test: /api/auth/me</h2>
+        <div id="auth-me-result" class="debug-data">Click button to test</div>
+        <button class="button" onclick="testAuthMe()">Test /api/auth/me</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2 class="debug-title">API Test: /api/wishlist</h2>
+        <div id="wishlist-result" class="debug-data">Click button to test</div>
+        <button class="button" onclick="testWishlistAPI()">Test /api/wishlist</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2 class="debug-title">Actions</h2>
+        <button class="button" onclick="clearAllData()">Clear All localStorage</button>
+        <button class="button" onclick="window.location.href='http://localhost:3000/wishlist'">Go to Wishlist</button>
+        <button class="button" onclick="window.location.href='http://localhost:3000/auth'">Go to Auth</button>
+    </div>
+
+    <script>
+        function checkAuthToken() {
+            const token = localStorage.getItem('auth_token');
+            const tokenElement = document.getElementById('auth-token');
+            
+            if (token) {
+                try {
+                    // Decode JWT payload (basic decode, not verification)
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    tokenElement.innerHTML = `Token exists: YES\n\nToken (first 50 chars): ${token.substring(0, 50)}...\n\nDecoded payload:\n${JSON.stringify(payload, null, 2)}`;
+                } catch (e) {
+                    tokenElement.innerHTML = `Token exists: YES\nToken (first 50 chars): ${token.substring(0, 50)}...\nError decoding: ${e.message}`;
+                }
+            } else {
+                tokenElement.innerHTML = 'Token exists: NO';
+            }
+        }
+        
+        function checkLocalStorage() {
+            const localStorageElement = document.getElementById('localStorage-data');
+            const data = {};
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                data[key] = value;
+            }
+            
+            localStorageElement.innerHTML = JSON.stringify(data, null, 2);
+        }
+        
+        async function testAuthMe() {
+            const resultElement = document.getElementById('auth-me-result');
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                resultElement.innerHTML = 'ERROR: No auth token found';
+                resultElement.className = 'debug-data error';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/me', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                resultElement.innerHTML = `Status: ${response.status}\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                resultElement.className = response.ok ? 'debug-data success' : 'debug-data error';
+            } catch (error) {
+                resultElement.innerHTML = `ERROR: ${error.message}`;
+                resultElement.className = 'debug-data error';
+            }
+        }
+        
+        async function testWishlistAPI() {
+            const resultElement = document.getElementById('wishlist-result');
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                resultElement.innerHTML = 'ERROR: No auth token found';
+                resultElement.className = 'debug-data error';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/wishlist', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                resultElement.innerHTML = `Status: ${response.status}\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                resultElement.className = response.ok ? 'debug-data success' : 'debug-data error';
+            } catch (error) {
+                resultElement.innerHTML = `ERROR: ${error.message}`;
+                resultElement.className = 'debug-data error';
+            }
+        }
+        
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all localStorage data?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                alert('All data cleared! Please refresh the page.');
+                location.reload();
+            }
+        }
+        
+        // Initialize on page load
+        window.onload = function() {
+            checkAuthToken();
+            checkLocalStorage();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Profile Save Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success-btn { background-color: #28a745; }
+        .success-btn:hover { background-color: #218838; }
+        .danger-btn { background-color: #dc3545; }
+        .danger-btn:hover { background-color: #c82333; }
+        .log {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Final Profile Save Test</h1>
+    <p>This comprehensive test will verify that the profile save functionality is working correctly.</p>
+    
+    <div class="test-section">
+        <h3>Step 1: Authentication Check</h3>
+        <button onclick="checkAuth()">Check Authentication</button>
+        <div id="authStatus" class="status info">Click to check authentication status</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 2: Get Current Profile</h3>
+        <button onclick="getCurrentProfile()">Get Current Profile</button>
+        <div id="profileStatus" class="status info">Click to fetch current profile</div>
+        <div id="currentProfile" class="log" style="display: none;"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 3: Test Profile Update</h3>
+        <div class="form-group">
+            <label for="firstName">First Name:</label>
+            <input type="text" id="firstName" value="Test">
+        </div>
+        <div class="form-group">
+            <label for="lastName">Last Name:</label>
+            <input type="text" id="lastName" value="User">
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone:</label>
+            <input type="text" id="phone" value="+1234567890">
+        </div>
+        <div class="form-group">
+            <label for="bio">Bio:</label>
+            <textarea id="bio">This is a test bio for profile save functionality.</textarea>
+        </div>
+        <button class="success-btn" onclick="saveProfile()">Save Profile (PUT Request)</button>
+        <button class="danger-btn" onclick="restoreProfile()">Restore Original Profile</button>
+        <div id="saveStatus" class="status info">Fill in the form and click Save Profile</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 4: Verify Update</h3>
+        <button onclick="verifyUpdate()">Verify Profile Update</button>
+        <div id="verifyStatus" class="status info">Click to verify the profile was updated</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Log</h3>
+        <button onclick="clearLog()">Clear Log</button>
+        <div id="log" class="log">Test log will appear here...
+</div>
+    </div>
+    
+    <script>
+        let originalProfile = null;
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        function setStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = 'Log cleared...\n';
+        }
+        
+        async function checkAuth() {
+            try {
+                log('🔍 Checking authentication...');
+                const token = localStorage.getItem('auth_token');
+                
+                if (!token) {
+                    log('❌ No auth token found in localStorage');
+                    setStatus('authStatus', 'No authentication token found', 'error');
+                    return false;
+                }
+                
+                log(`✅ Auth token found (length: ${token.length})`);
+                
+                // Test token with /api/auth/me endpoint
+                const response = await fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    log('✅ Authentication successful');
+                    log(`👤 User: ${userData.user.email} (ID: ${userData.user.id})`);
+                    setStatus('authStatus', 'Authentication successful', 'success');
+                    return true;
+                } else {
+                    log(`❌ Authentication failed: ${response.status}`);
+                    setStatus('authStatus', 'Authentication failed', 'error');
+                    return false;
+                }
+                
+            } catch (error) {
+                log(`❌ Auth check error: ${error.message}`);
+                setStatus('authStatus', 'Authentication check failed', 'error');
+                return false;
+            }
+        }
+        
+        async function getCurrentProfile() {
+            try {
+                log('📋 Fetching current profile...');
+                const token = localStorage.getItem('auth_token');
+                
+                if (!token) {
+                    log('❌ No auth token for profile fetch');
+                    setStatus('profileStatus', 'No authentication token', 'error');
+                    return;
+                }
+                
+                const response = await fetch('/api/profiles', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    originalProfile = data.profile;
+                    log('✅ Profile fetched successfully');
+                    log(`📋 Profile: ${JSON.stringify(originalProfile, null, 2)}`);
+                    
+                    // Display current profile
+                    const profileDiv = document.getElementById('currentProfile');
+                    profileDiv.textContent = JSON.stringify(originalProfile, null, 2);
+                    profileDiv.style.display = 'block';
+                    
+                    // Pre-fill form with current data
+                    document.getElementById('firstName').value = originalProfile.first_name || '';
+                    document.getElementById('lastName').value = originalProfile.last_name || '';
+                    document.getElementById('phone').value = originalProfile.phone || '';
+                    document.getElementById('bio').value = originalProfile.bio || '';
+                    
+                    setStatus('profileStatus', 'Profile fetched successfully', 'success');
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Profile fetch failed: ${response.status} - ${errorText}`);
+                    setStatus('profileStatus', 'Profile fetch failed', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Profile fetch error: ${error.message}`);
+                setStatus('profileStatus', 'Profile fetch error', 'error');
+            }
+        }
+        
+        async function saveProfile() {
+            try {
+                log('💾 Starting profile save...');
+                const token = localStorage.getItem('auth_token');
+                
+                if (!token) {
+                    log('❌ No auth token for profile save');
+                    setStatus('saveStatus', 'No authentication token', 'error');
+                    return;
+                }
+                
+                // Get form data
+                const profileData = {
+                    first_name: document.getElementById('firstName').value,
+                    last_name: document.getElementById('lastName').value,
+                    phone: document.getElementById('phone').value,
+                    bio: document.getElementById('bio').value,
+                    birthdate: '',
+                    gender: '',
+                    preferences: {
+                        newsletter: true,
+                        sms_notifications: false,
+                        email_notifications: true,
+                        preferred_language: 'en',
+                        currency: 'PHP'
+                    }
+                };
+                
+                log('📝 Profile data to save:');
+                log(JSON.stringify(profileData, null, 2));
+                
+                setStatus('saveStatus', 'Saving profile...', 'info');
+                
+                const response = await fetch('/api/profiles', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(profileData)
+                });
+                
+                log(`📡 PUT Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    log('✅ Profile saved successfully!');
+                    log(`📋 Save result: ${JSON.stringify(result, null, 2)}`);
+                    setStatus('saveStatus', 'Profile saved successfully!', 'success');
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Profile save failed: ${response.status} - ${errorText}`);
+                    setStatus('saveStatus', 'Profile save failed', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Profile save error: ${error.message}`);
+                setStatus('saveStatus', 'Profile save error', 'error');
+            }
+        }
+        
+        async function verifyUpdate() {
+            try {
+                log('🔍 Verifying profile update...');
+                await getCurrentProfile();
+                setStatus('verifyStatus', 'Profile verification completed', 'success');
+            } catch (error) {
+                log(`❌ Verification error: ${error.message}`);
+                setStatus('verifyStatus', 'Profile verification failed', 'error');
+            }
+        }
+        
+        async function restoreProfile() {
+            if (!originalProfile) {
+                log('❌ No original profile data to restore');
+                setStatus('saveStatus', 'No original profile to restore', 'error');
+                return;
+            }
+            
+            try {
+                log('🔄 Restoring original profile...');
+                const token = localStorage.getItem('auth_token');
+                
+                const response = await fetch('/api/profiles', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(originalProfile)
+                });
+                
+                if (response.ok) {
+                    log('✅ Original profile restored');
+                    setStatus('saveStatus', 'Original profile restored', 'success');
+                    await getCurrentProfile();
+                } else {
+                    log(`❌ Profile restore failed: ${response.status}`);
+                    setStatus('saveStatus', 'Profile restore failed', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Profile restore error: ${error.message}`);
+                setStatus('saveStatus', 'Profile restore error', 'error');
+            }
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            log('✅ Test page loaded successfully');
+            checkAuth();
+        });
+    </script>
+</body>
+</html>

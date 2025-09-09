@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Storage - GKICKS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .danger {
+            background: #dc3545;
+        }
+        .danger:hover {
+            background: #c82333;
+        }
+        .success {
+            background: #28a745;
+        }
+        .success:hover {
+            background: #218838;
+        }
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Storage Debug Tool</h1>
+        <p>This tool helps debug authentication storage issues.</p>
+
+        <div class="section">
+            <h3>Current Storage Status</h3>
+            <button class="button" onclick="checkStorage()">Check All Storage</button>
+            <div id="storageOutput" class="output"></div>
+        </div>
+
+        <div class="section">
+            <h3>Token Analysis</h3>
+            <button class="button" onclick="analyzeToken()">Analyze Current Token</button>
+            <div id="tokenOutput" class="output"></div>
+        </div>
+
+        <div class="section">
+            <h3>Clear Storage</h3>
+            <button class="button danger" onclick="clearAllStorage()">Clear All Storage</button>
+            <button class="button danger" onclick="clearCookies()">Clear All Cookies</button>
+            <div id="clearOutput" class="output"></div>
+        </div>
+
+        <div class="section">
+            <h3>Test API</h3>
+            <button class="button" onclick="testProfileAPI()">Test Profile API</button>
+            <button class="button success" onclick="generateNewToken()">Generate New Token</button>
+            <div id="apiOutput" class="output"></div>
+        </div>
+    </div>
+
+    <script>
+        function checkStorage() {
+            const output = document.getElementById('storageOutput');
+            let result = 'STORAGE ANALYSIS:\n\n';
+            
+            // Check localStorage
+            result += '=== LOCAL STORAGE ===\n';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                result += `${key}: ${value ? value.substring(0, 100) + (value.length > 100 ? '...' : '') : 'null'}\n`;
+            }
+            
+            // Check sessionStorage
+            result += '\n=== SESSION STORAGE ===\n';
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                const value = sessionStorage.getItem(key);
+                result += `${key}: ${value ? value.substring(0, 100) + (value.length > 100 ? '...' : '') : 'null'}\n`;
+            }
+            
+            // Check cookies
+            result += '\n=== COOKIES ===\n';
+            const cookies = document.cookie.split(';');
+            cookies.forEach(cookie => {
+                const [name, value] = cookie.trim().split('=');
+                result += `${name}: ${value ? value.substring(0, 100) + (value.length > 100 ? '...' : '') : 'null'}\n`;
+            });
+            
+            output.textContent = result;
+        }
+
+        function analyzeToken() {
+            const output = document.getElementById('tokenOutput');
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                output.textContent = 'No token found in localStorage';
+                return;
+            }
+            
+            let result = 'TOKEN ANALYSIS:\n\n';
+            result += `Token length: ${token.length}\n`;
+            result += `Token preview: ${token.substring(0, 50)}...\n\n`;
+            
+            // Try to decode JWT parts
+            try {
+                const parts = token.split('.');
+                result += `JWT Parts: ${parts.length}\n`;
+                
+                if (parts.length === 3) {
+                    // Decode header
+                    const header = JSON.parse(atob(parts[0]));
+                    result += `Header: ${JSON.stringify(header, null, 2)}\n\n`;
+                    
+                    // Decode payload
+                    const payload = JSON.parse(atob(parts[1]));
+                    result += `Payload: ${JSON.stringify(payload, null, 2)}\n`;
+                } else {
+                    result += 'Invalid JWT format - should have 3 parts separated by dots\n';
+                }
+            } catch (error) {
+                result += `Error decoding token: ${error.message}\n`;
+            }
+            
+            output.textContent = result;
+        }
+
+        function clearAllStorage() {
+            const output = document.getElementById('clearOutput');
+            
+            // Clear localStorage
+            localStorage.clear();
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            output.textContent = 'All storage cleared successfully!';
+        }
+
+        function clearCookies() {
+            const output = document.getElementById('clearOutput');
+            
+            // Get all cookies and clear them
+            const cookies = document.cookie.split(';');
+            cookies.forEach(cookie => {
+                const eqPos = cookie.indexOf('=');
+                const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+            });
+            
+            output.textContent = 'All cookies cleared successfully!';
+        }
+
+        async function testProfileAPI() {
+            const output = document.getElementById('apiOutput');
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                output.textContent = 'No token found. Please generate a new token first.';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/profiles', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                output.textContent = `Profile API Response (${response.status}):\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                output.textContent = `Error testing profile API: ${error.message}`;
+            }
+        }
+
+        async function generateNewToken() {
+            const output = document.getElementById('apiOutput');
+            
+            try {
+                // Clear existing token first
+                localStorage.removeItem('auth_token');
+                
+                const response = await fetch('/api/auth/session-to-jwt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    localStorage.setItem('auth_token', data.token);
+                    output.textContent = `New token generated successfully!\nToken: ${data.token.substring(0, 50)}...\nUser: ${JSON.stringify(data.user, null, 2)}`;
+                } else {
+                    output.textContent = `Failed to generate token: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                output.textContent = `Error generating token: ${error.message}`;
+            }
+        }
+
+        // Auto-check storage on page load
+        window.onload = function() {
+            checkStorage();
+        };
+    </script>
+</body>
+</html>

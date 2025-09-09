@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin JWT Token</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .token-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+        .success {
+            border-left-color: #28a745;
+            background-color: #d4edda;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .token-preview {
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Admin JWT Token Test</h1>
+        <p>This page helps verify if the JWT token is properly stored in localStorage for admin users.</p>
+        
+        <button onclick="checkToken()">Check JWT Token</button>
+        <button onclick="clearToken()">Clear Token</button>
+        <button onclick="testAPI()">Test API Call</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function checkToken() {
+            const resultsDiv = document.getElementById('results');
+            const token = localStorage.getItem('auth_token');
+            
+            if (token) {
+                try {
+                    // Decode JWT payload (without verification)
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="token-info success">
+                            <h3>✅ JWT Token Found!</h3>
+                            <p><strong>Token Length:</strong> ${token.length} characters</p>
+                            <p><strong>User ID:</strong> ${payload.userId || 'N/A'}</p>
+                            <p><strong>Email:</strong> ${payload.email || 'N/A'}</p>
+                            <p><strong>Role:</strong> ${payload.role || 'N/A'}</p>
+                            <p><strong>Expires:</strong> ${new Date(payload.exp * 1000).toLocaleString()}</p>
+                            <div class="token-preview">
+                                <strong>Token Preview:</strong><br>
+                                ${token.substring(0, 100)}...
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    resultsDiv.innerHTML = `
+                        <div class="token-info error">
+                            <h3>❌ Invalid JWT Token</h3>
+                            <p>Token exists but cannot be decoded: ${error.message}</p>
+                            <div class="token-preview">
+                                <strong>Raw Token:</strong><br>
+                                ${token.substring(0, 200)}...
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="token-info error">
+                        <h3>❌ No JWT Token Found</h3>
+                        <p>No 'auth_token' found in localStorage.</p>
+                        <p>Make sure you're logged in as an admin user.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function clearToken() {
+            localStorage.removeItem('auth_token');
+            document.getElementById('results').innerHTML = `
+                <div class="token-info">
+                    <h3>🗑️ Token Cleared</h3>
+                    <p>JWT token has been removed from localStorage.</p>
+                </div>
+            `;
+        }
+        
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                resultsDiv.innerHTML = `
+                    <div class="token-info error">
+                        <h3>❌ No Token for API Test</h3>
+                        <p>Please check token first.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/products', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const responseText = await response.text();
+                let responseData;
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch {
+                    responseData = responseText;
+                }
+                
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <div class="token-info success">
+                            <h3>✅ API Test Successful</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Response:</strong> API call succeeded with JWT token</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="token-info error">
+                            <h3>❌ API Test Failed</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Error:</strong> ${JSON.stringify(responseData)}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="token-info error">
+                        <h3>❌ API Test Error</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Auto-check token on page load
+        window.onload = function() {
+            checkToken();
+        };
+    </script>
+</body>
+</html>

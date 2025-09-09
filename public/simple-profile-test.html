@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Profile Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Simple Profile Save Test</h1>
+        <p>This page tests the profile save functionality in isolation.</p>
+        
+        <div id="status" class="status info">Ready to test...</div>
+        
+        <button onclick="testLogin()">1. Test Login</button>
+        <button onclick="testGetProfile()">2. Get Current Profile</button>
+        <button onclick="testSaveProfile()">3. Test Save Profile</button>
+        <button onclick="testVerifyUpdate()">4. Verify Update</button>
+        <button onclick="clearLog()">Clear Log</button>
+        
+        <div id="log" class="log">Test log will appear here...
+</div>
+    </div>
+    
+    <script>
+        let currentProfile = null;
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function setStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = 'Log cleared...\n';
+            setStatus('Log cleared', 'info');
+        }
+        
+        async function testLogin() {
+            try {
+                log('🔐 Testing authentication...');
+                setStatus('Testing authentication...', 'info');
+                
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    log('❌ No token found in localStorage');
+                    setStatus('No authentication token found', 'error');
+                    return false;
+                }
+                
+                log('✅ Token found in localStorage');
+                log(`🔑 Token length: ${token.length}`);
+                
+                // Test token validity by making a simple API call
+                const response = await fetch('/api/profiles', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    log('✅ Token is valid - authentication successful');
+                    setStatus('Authentication successful', 'success');
+                    return true;
+                } else {
+                    log(`❌ Token validation failed: ${response.status}`);
+                    setStatus('Authentication failed', 'error');
+                    return false;
+                }
+                
+            } catch (error) {
+                log(`❌ Authentication error: ${error.message}`);
+                setStatus('Authentication error', 'error');
+                return false;
+            }
+        }
+        
+        async function testGetProfile() {
+            try {
+                log('📋 Fetching current profile...');
+                setStatus('Fetching profile...', 'info');
+                
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    log('❌ No authentication token');
+                    setStatus('No authentication token', 'error');
+                    return;
+                }
+                
+                const response = await fetch('/api/profiles', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    currentProfile = await response.json();
+                    log('✅ Profile fetched successfully:');
+                    log(JSON.stringify(currentProfile, null, 2));
+                    setStatus('Profile fetched successfully', 'success');
+                } else {
+                    log(`❌ Failed to fetch profile: ${response.status}`);
+                    setStatus('Failed to fetch profile', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Error fetching profile: ${error.message}`);
+                setStatus('Error fetching profile', 'error');
+            }
+        }
+        
+        async function testSaveProfile() {
+            try {
+                log('💾 Testing profile save...');
+                setStatus('Testing profile save...', 'info');
+                
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    log('❌ No authentication token');
+                    setStatus('No authentication token', 'error');
+                    return;
+                }
+                
+                // Create test profile data
+                const testData = {
+                    first_name: 'Test Save',
+                    last_name: 'Profile Update',
+                    phone: '+1234567890',
+                    birthdate: '',
+                    gender: '',
+                    bio: 'Testing profile save functionality',
+                    avatar_url: currentProfile?.avatar_url || '',
+                    preferences: {
+                        newsletter: false,
+                        sms_notifications: true,
+                        email_notifications: false,
+                        preferred_language: 'en',
+                        currency: 'PHP'
+                    }
+                };
+                
+                log('📝 Sending profile update:');
+                log(JSON.stringify(testData, null, 2));
+                
+                const response = await fetch('/api/profiles', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                log(`📡 Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    log('✅ Profile save successful!');
+                    log('📋 Server response:');
+                    log(JSON.stringify(result, null, 2));
+                    setStatus('Profile saved successfully', 'success');
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ Profile save failed: ${errorText}`);
+                    setStatus('Profile save failed', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Error saving profile: ${error.message}`);
+                setStatus('Error saving profile', 'error');
+            }
+        }
+        
+        async function testVerifyUpdate() {
+            try {
+                log('🔍 Verifying profile update...');
+                setStatus('Verifying update...', 'info');
+                
+                await testGetProfile();
+                
+                if (currentProfile) {
+                    log('🔍 Checking if update persisted:');
+                    log(`- First name: ${currentProfile.first_name}`);
+                    log(`- Last name: ${currentProfile.last_name}`);
+                    log(`- Phone: ${currentProfile.phone}`);
+                    log(`- Bio: ${currentProfile.bio}`);
+                    
+                    if (currentProfile.first_name === 'Test Save' && 
+                        currentProfile.last_name === 'Profile Update') {
+                        log('✅ Update verification successful!');
+                        setStatus('Update verified successfully', 'success');
+                    } else {
+                        log('❌ Update verification failed - data not persisted');
+                        setStatus('Update not persisted', 'error');
+                    }
+                }
+                
+            } catch (error) {
+                log(`❌ Error verifying update: ${error.message}`);
+                setStatus('Error verifying update', 'error');
+            }
+        }
+        
+        // Auto-run authentication test on page load
+        window.addEventListener('load', () => {
+            log('🚀 Page loaded - running initial tests...');
+            testLogin();
+        });
+    </script>
+</body>
+</html>

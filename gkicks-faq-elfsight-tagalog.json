@@ -1,0 +1,223 @@
+{
+  "faqs": [
+    {
+      "id": "store-001",
+      "category": "Impormasyon ng Tindahan",
+      "question": "Ano ang inyong oras ng pagbubukas?",
+      "answer": "Bukas ang aming tindahan araw-araw mula 10:00 AM hanggang 9:00 PM, kasama na ang mga weekend at holiday.",
+      "keywords": ["oras", "bukas", "sarado", "oras", "iskedyul"],
+      "priority": "high"
+    },
+    {
+      "id": "store-002",
+      "category": "Impormasyon ng Tindahan",
+      "question": "Nasaan ang GKicks?",
+      "answer": "Ang GKicks ay matatagpuan sa Pilipinas. Naglilingkod kami sa buong bansa sa pamamagitan ng aming online store at may mga pisikal na lokasyon para sa in-store shopping.",
+      "keywords": ["lokasyon", "address", "saan", "pilipinas"],
+      "priority": "high"
+    },
+    {
+      "id": "store-003",
+      "category": "Impormasyon ng Tindahan",
+      "question": "Paano ako makakakuha ng customer service?",
+      "answer": "Maaari kayong makipag-ugnayan sa aming customer service sa pamamagitan ng chat na ito, tumawag sa aming hotline, o bumisita sa aming pisikal na tindahan. Nandito kami para tumulong sa anumang tanong tungkol sa mga produkto, orders, o sizing.",
+      "keywords": ["contact", "customer service", "tulong", "suporta"],
+      "priority": "high"
+    },
+    {
+      "id": "shipping-001",
+      "category": "Shipping at Delivery",
+      "question": "May free shipping ba kayo?",
+      "answer": "Oo! Nag-aalok kami ng free shipping para sa lahat ng orders na higit sa ₱3,000. Para sa mga orders na mas mababa sa ₱3,000, standard shipping rates ang gagamitin.",
+      "keywords": ["free shipping", "delivery", "shipping cost", "3000"],
+      "priority": "high"
+    },
+    {
+      "id": "shipping-002",
+      "category": "Shipping at Delivery",
+      "question": "Gaano katagal ang delivery?",
+      "answer": "Ang standard delivery ay tumatagal ng 3-7 business days sa loob ng Metro Manila, at 5-10 business days para sa mga probinsya. May mga express delivery options din para sa mas mabilis na shipping.",
+      "keywords": ["delivery time", "shipping time", "gaano katagal", "araw"],
+      "priority": "high"
+    },
+    {
+      "id": "shipping-003",
+      "category": "Shipping at Delivery",
+      "question": "Pwede ko bang i-track ang aking order?",
+      "answer": "Syempre! Kapag na-ship na ang inyong order, makatanggap kayo ng tracking number sa email o SMS. Pwede rin ninyong tingnan ang order status sa inyong account dashboard.",
+      "keywords": ["track", "tracking", "order status", "shipment"],
+      "priority": "medium"
+    },
+    {
+      "id": "payment-001",
+      "category": "Mga Paraan ng Pagbabayad",
+      "question": "Anong mga payment methods ang tinatanggap ninyo?",
+      "answer": "Tumatanggap kami ng iba't ibang payment methods: Cash (para sa in-store purchases), GCash, Maya (PayMaya), Credit Cards (Visa, Mastercard), at Debit Cards.",
+      "keywords": ["payment", "gcash", "maya", "credit card", "cash", "paymaya"],
+      "priority": "high"
+    },
+    {
+      "id": "payment-002",
+      "category": "Mga Paraan ng Pagbabayad",
+      "question": "Safe ba ang pagbabayad online?",
+      "answer": "Oo, lahat ng online payments ay secured gamit ang SSL encryption. Gumagamit kami ng mga trusted payment gateways tulad ng GCash at Maya para masiguro na protected ang inyong financial information.",
+      "keywords": ["safe", "secure", "online payment", "ssl", "security"],
+      "priority": "medium"
+    },
+    {
+      "id": "payment-003",
+      "category": "Mga Paraan ng Pagbabayad",
+      "question": "Pwede bang cash on delivery?",
+      "answer": "Available ang cash on delivery (COD) sa mga piling lugar. Pakitingnan sa checkout kung available ang COD sa inyong lokasyon.",
+      "keywords": ["cod", "cash on delivery", "bayad sa delivery"],
+      "priority": "medium"
+    },
+    {
+      "id": "returns-001",
+      "category": "Returns at Exchanges",
+      "question": "Ano ang inyong return policy?",
+      "answer": "Nag-aalok kami ng 30-day return policy para sa mga hindi pa nagamit na sapatos na nasa original condition pa rin kasama ang tags at packaging. Dapat ibalik ang mga items sa loob ng 30 days mula sa pagbili.",
+      "keywords": ["return", "return policy", "30 days", "refund"],
+      "priority": "high"
+    },
+    {
+      "id": "returns-002",
+      "category": "Returns at Exchanges",
+      "question": "Pwede bang mag-exchange para sa ibang size?",
+      "answer": "Oo! Pwedeng mag-size exchange sa loob ng 14 days mula sa pagbili. Dapat hindi pa nagamit ang sapatos at nasa original condition pa rin. Libre ang size exchanges.",
+      "keywords": ["exchange", "size exchange", "ibang size", "14 days"],
+      "priority": "high"
+    },
+    {
+      "id": "returns-003",
+      "category": "Returns at Exchanges",
+      "question": "Paano mag-return ng item?",
+      "answer": "Para mag-return ng item, makipag-ugnayan sa aming customer service para simulan ang return process. Bibigyan namin kayo ng return instructions at return shipping label kung applicable.",
+      "keywords": ["paano mag-return", "return process", "return instructions"],
+      "priority": "medium"
+    },
+    {
+      "id": "sizing-001",
+      "category": "Sizing at Fit",
+      "question": "Paano ko malalaman ang aking shoe size?",
+      "answer": "Nagbibigay kami ng size conversion charts para sa US, UK, at EU sizes. Sukatin ang haba ng inyong paa at tingnan ang aming sizing guide. Kung hindi kayo sigurado, inirerekomenda namin na mag-half size up para sa comfort.",
+      "keywords": ["shoe size", "sizing", "size chart", "sukat", "fit"],
+      "priority": "high"
+    },
+    {
+      "id": "sizing-002",
+      "category": "Sizing at Fit",
+      "question": "May half sizes ba kayo?",
+      "answer": "Oo, may half sizes kami para sa karamihan ng shoe models. Ang half sizes ay nagbibigay ng mas magandang fit, lalo na para sa mga nasa pagitan ng whole sizes.",
+      "keywords": ["half size", "half sizes", "0.5", "mas magandang fit"],
+      "priority": "medium"
+    },
+    {
+      "id": "sizing-003",
+      "category": "Sizing at Fit",
+      "question": "May wide o narrow fits ba kayo?",
+      "answer": "May mga piling brands na nag-aalok ng wide at narrow fits. Ang mga brands tulad ng New Balance at Asics ay may iba't ibang width options. Tingnan ang product description o tanungin ang aming staff para sa availability.",
+      "keywords": ["wide", "narrow", "width", "fit", "new balance", "asics"],
+      "priority": "medium"
+    },
+    {
+      "id": "product-001",
+      "category": "Impormasyon ng Produkto",
+      "question": "Anong mga brands ang meron kayo?",
+      "answer": "May premium brands kami kabilang ang Nike, Adidas, Jordan, New Balance, Asics, Reebok, Converse, at Vans. Bawat brand ay nag-aalok ng iba't ibang styles at price ranges.",
+      "keywords": ["brands", "nike", "adidas", "jordan", "new balance", "asics", "reebok", "converse", "vans"],
+      "priority": "high"
+    },
+    {
+      "id": "product-002",
+      "category": "Impormasyon ng Produkto",
+      "question": "Ano ang inyong price ranges?",
+      "answer": "Ang aming mga presyo ay nag-iiba ayon sa brand: Nike (₱3,500-₱12,000), Adidas (₱3,200-₱10,500), Jordan (₱8,000-₱15,000), New Balance (₱4,000-₱9,500), Asics (₱3,800-₱8,500), Reebok (₱2,800-₱7,000), Converse (₱2,500-₱5,500), Vans (₱2,800-₱6,000).",
+      "keywords": ["presyo", "halaga", "magkano", "peso", "mahal", "mura"],
+      "priority": "high"
+    },
+    {
+      "id": "product-003",
+      "category": "Impormasyon ng Produkto",
+      "question": "May sapatos ba kayo para sa mga bata?",
+      "answer": "Oo! May dedicated kids' section kami na may sapatos para sa mga bata sa lahat ng kategorya - running, basketball, casual, at school shoes. Lahat ng major brands ay may kids' sizes.",
+      "keywords": ["kids", "mga bata", "kids shoes", "sapatos ng bata", "maliliit na sizes"],
+      "priority": "medium"
+    },
+    {
+      "id": "product-004",
+      "category": "Impormasyon ng Produkto",
+      "question": "Nagbebenta ba kayo ng authentic na sapatos?",
+      "answer": "Syempre! Lahat ng aming sapatos ay 100% authentic at nakuha direkta mula sa mga authorized distributors. Ginagarantiya namin ang authenticity ng bawat produktong binebenta namin.",
+      "keywords": ["authentic", "tunay", "totoo", "original", "peke"],
+      "priority": "high"
+    },
+    {
+      "id": "account-001",
+      "category": "Account at Orders",
+      "question": "Kailangan ba gumawa ng account para mag-order?",
+      "answer": "Habang pwede kayong mag-browse nang walang account, ang paggawa ng isa ay magbibigay-daan sa pag-track ng orders, pag-save ng favorites, pag-manage ng addresses, at personalized recommendations.",
+      "keywords": ["account", "register", "sign up", "gumawa ng account"],
+      "priority": "medium"
+    },
+    {
+      "id": "account-002",
+      "category": "Account at Orders",
+      "question": "Paano ko ma-track ang aking order?",
+      "answer": "Mag-log in sa inyong account at pumunta sa 'My Orders' para makita ang real-time order status. Makatanggap din kayo ng email/SMS updates na may tracking information.",
+      "keywords": ["track order", "order status", "my orders", "tracking"],
+      "priority": "medium"
+    },
+    {
+      "id": "account-003",
+      "category": "Account at Orders",
+      "question": "Pwede bang i-cancel ang aking order?",
+      "answer": "Pwedeng i-cancel ang mga orders sa loob ng 2 oras mula sa pag-place kung hindi pa na-process. Makipag-ugnayan agad sa customer service para sa cancellation requests.",
+      "keywords": ["cancel", "cancel order", "cancellation", "2 oras"],
+      "priority": "medium"
+    },
+    {
+      "id": "service-001",
+      "category": "Mga Espesyal na Serbisyo",
+      "question": "Nag-aalok ba kayo ng gift wrapping?",
+      "answer": "Oo, nag-aalok kami ng libreng gift wrapping para sa mga espesyal na okasyon. Piliin ang gift wrap option sa checkout o banggitin sa inyong order notes.",
+      "keywords": ["gift wrap", "gift wrapping", "regalo", "espesyal na okasyon"],
+      "priority": "low"
+    },
+    {
+      "id": "service-002",
+      "category": "Mga Espesyal na Serbisyo",
+      "question": "May loyalty program ba kayo?",
+      "answer": "Oo! Sumali sa aming GKicks Rewards program para kumita ng points sa bawat purchase, makakuha ng exclusive discounts, early access sa mga sale, at birthday specials.",
+      "keywords": ["loyalty", "rewards", "points", "program", "discounts"],
+      "priority": "medium"
+    },
+    {
+      "id": "service-003",
+      "category": "Mga Espesyal na Serbisyo",
+      "question": "Nag-aalok ba kayo ng shoe cleaning services?",
+      "answer": "Nag-aalok kami ng professional shoe cleaning at restoration services para sa premium sneakers. Dalhin ang inyong sapatos sa aming tindahan para sa assessment at pricing.",
+      "keywords": ["cleaning", "shoe cleaning", "restoration", "professional cleaning"],
+      "priority": "low"
+    }
+  ],
+  "categories": [
+    "Impormasyon ng Tindahan",
+    "Shipping at Delivery",
+    "Mga Paraan ng Pagbabayad",
+    "Returns at Exchanges",
+    "Sizing at Fit",
+    "Impormasyon ng Produkto",
+    "Account at Orders",
+    "Mga Espesyal na Serbisyo"
+  ],
+  "metadata": {
+    "store_name": "GKicks",
+    "location": "Pilipinas",
+    "currency": "PHP",
+    "total_faqs": 25,
+    "last_updated": "2024-01-20",
+    "version": "1.0",
+    "language": "Tagalog"
+  }
+}

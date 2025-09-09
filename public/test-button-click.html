@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Click Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Button Click Test</h1>
+    <p>This page tests if JavaScript button clicks are working properly.</p>
+    
+    <div class="test-section">
+        <h3>Test 1: Basic Button Click</h3>
+        <button onclick="testBasicClick()">Click Me - Basic Test</button>
+        <div id="basicResult" class="status info">Click the button above</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Console Log Test</h3>
+        <button onclick="testConsoleLog()">Click Me - Console Log Test</button>
+        <div id="consoleResult" class="status info">Check browser console after clicking</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: Profile Save Simulation</h3>
+        <button onclick="simulateProfileSave()">Simulate Profile Save</button>
+        <div id="profileResult" class="status info">This will simulate the profile save process</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 4: API Call Test</h3>
+        <button onclick="testAPICall()">Test API Call</button>
+        <div id="apiResult" class="status info">This will test making an API call</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Log</h3>
+        <button onclick="clearLog()">Clear Log</button>
+        <div id="log" class="log">Test log will appear here...
+</div>
+    </div>
+    
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        function setStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = 'Log cleared...\n';
+        }
+        
+        function testBasicClick() {
+            log('✅ Basic button click test successful!');
+            setStatus('basicResult', 'Button click works!', 'success');
+        }
+        
+        function testConsoleLog() {
+            console.log('🔘 PROFILE: Save button clicked! (simulated)');
+            console.log('🔘 PROFILE: isSaving state: false (simulated)');
+            console.log('🔘 PROFILE: Current profileData: {test: "data"} (simulated)');
+            log('✅ Console log test completed - check browser console');
+            setStatus('consoleResult', 'Console logs sent - check browser console', 'success');
+        }
+        
+        async function simulateProfileSave() {
+            try {
+                log('🚀 PROFILE: handleSaveProfile called (simulated)');
+                log('👤 PROFILE: User found, proceeding with save (simulated)');
+                
+                const profileData = {
+                    first_name: 'Test',
+                    last_name: 'User',
+                    phone: '+1234567890',
+                    bio: 'Test bio'
+                };
+                
+                log('📝 PROFILE: Sending request body: ' + JSON.stringify(profileData));
+                log('🔗 PROFILE: Making PUT request to /api/profiles (simulated)');
+                
+                // Simulate the actual API call logic
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    log('❌ No auth token found in localStorage');
+                    setStatus('profileResult', 'No authentication token found', 'error');
+                    return;
+                }
+                
+                log('✅ Auth token found, length: ' + token.length);
+                setStatus('profileResult', 'Profile save simulation completed', 'success');
+                
+            } catch (error) {
+                log('❌ Error in profile save simulation: ' + error.message);
+                setStatus('profileResult', 'Profile save simulation failed', 'error');
+            }
+        }
+        
+        async function testAPICall() {
+            try {
+                log('🔍 Testing actual API call...');
+                setStatus('apiResult', 'Making API call...', 'info');
+                
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    log('❌ No auth token found');
+                    setStatus('apiResult', 'No authentication token', 'error');
+                    return;
+                }
+                
+                log('🔑 Token found, making GET request to /api/profiles');
+                
+                const response = await fetch('/api/profiles', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                log(`📡 Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ API call successful!');
+                    log('📋 Response data: ' + JSON.stringify(data, null, 2));
+                    setStatus('apiResult', 'API call successful', 'success');
+                } else {
+                    const errorText = await response.text();
+                    log(`❌ API call failed: ${errorText}`);
+                    setStatus('apiResult', 'API call failed', 'error');
+                }
+                
+            } catch (error) {
+                log('❌ Error making API call: ' + error.message);
+                setStatus('apiResult', 'API call error', 'error');
+            }
+        }
+        
+        // Test JavaScript errors
+        window.addEventListener('error', function(e) {
+            log('❌ JavaScript Error: ' + e.message);
+            log('❌ Error at: ' + e.filename + ':' + e.lineno);
+        });
+        
+        // Test if page loads correctly
+        window.addEventListener('load', function() {
+            log('✅ Page loaded successfully');
+            log('🔍 Checking for auth token...');
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                log('✅ Auth token found in localStorage');
+            } else {
+                log('❌ No auth token found in localStorage');
+            }
+        });
+    </script>
+</body>
+</html>

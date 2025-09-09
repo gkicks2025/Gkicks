@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Auth Token</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background-color: #dc3545;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        .refresh-btn {
+            background-color: #007bff;
+        }
+        .refresh-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Clear Authentication Token</h1>
+    <p>This page will clear the stored authentication token so you can get a fresh one with the correct JWT secret.</p>
+    
+    <div id="status" class="status info">
+        Click the button below to clear your authentication token
+    </div>
+    
+    <button onclick="clearToken()">Clear Auth Token</button>
+    <button class="refresh-btn" onclick="refreshPage()">Refresh & Go to Profile</button>
+    
+    <div id="tokenInfo" style="margin-top: 20px; font-family: monospace; font-size: 12px;"></div>
+    
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+        
+        function showTokenInfo() {
+            const token = localStorage.getItem('auth_token');
+            const tokenInfoDiv = document.getElementById('tokenInfo');
+            
+            if (token) {
+                tokenInfoDiv.innerHTML = `
+                    <strong>Current Token Info:</strong><br>
+                    Length: ${token.length} characters<br>
+                    First 50 chars: ${token.substring(0, 50)}...<br>
+                    Parts: ${token.split('.').length} (should be 3 for JWT)
+                `;
+            } else {
+                tokenInfoDiv.innerHTML = '<strong>No token found in localStorage</strong>';
+            }
+        }
+        
+        function clearToken() {
+            try {
+                const hadToken = localStorage.getItem('auth_token') !== null;
+                
+                // Clear the auth token
+                localStorage.removeItem('auth_token');
+                
+                // Also clear any other auth-related items
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                
+                if (hadToken) {
+                    updateStatus('✅ Authentication token cleared successfully! Please refresh the page and log in again.', 'success');
+                } else {
+                    updateStatus('ℹ️ No authentication token was found to clear.', 'info');
+                }
+                
+                showTokenInfo();
+                
+            } catch (error) {
+                updateStatus('❌ Error clearing token: ' + error.message, 'error');
+            }
+        }
+        
+        function refreshPage() {
+            // Redirect to the profile page
+            window.location.href = '/profile';
+        }
+        
+        // Show current token info on page load
+        window.addEventListener('load', function() {
+            showTokenInfo();
+            
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                updateStatus('Token found in localStorage. You may need to clear it if you\'re experiencing authentication issues.', 'info');
+            } else {
+                updateStatus('No token found in localStorage. You may need to log in again.', 'info');
+            }
+        });
+    </script>
+</body>
+</html>

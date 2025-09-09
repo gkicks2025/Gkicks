@@ -1,0 +1,7 @@
+cd /var/www/gkicks
+pwd
+ls -la
+ps aux | grep node
+pm2 list
+sudo systemctl status nginx
+exit
