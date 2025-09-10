@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Viewer Test</title>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+    <style>
+        model-viewer {
+            width: 100%;
+            height: 400px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .loading { background-color: #fff3cd; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Model Viewer Test</h1>
+        <div id="status" class="status loading">Loading model viewer...</div>
+        
+        <model-viewer
+            id="model"
+            src="/uploads/3d-models/3d-model-1757475848360-8y2tu23nih.glb"
+            alt="Test 3D Model"
+            auto-rotate
+            camera-controls
+            loading="eager"
+            reveal="auto"
+            environment-image="neutral"
+            shadow-intensity="1"
+            shadow-softness="0.5"
+            exposure="1"
+            tone-mapping="aces"
+        ></model-viewer>
+        
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const logsDiv = document.getElementById('logs');
+        const modelViewer = document.getElementById('model');
+        
+        function log(message, type = 'info') {
+            console.log(message);
+            const logEntry = document.createElement('div');
+            logEntry.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            logEntry.style.margin = '5px 0';
+            logEntry.style.color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            logsDiv.appendChild(logEntry);
+        }
+        
+        // Check if model-viewer is available
+        if (window.customElements && window.customElements.get('model-viewer')) {
+            log('✅ Model Viewer is available', 'success');
+            statusDiv.textContent = 'Model Viewer loaded successfully';
+            statusDiv.className = 'status success';
+        } else {
+            log('❌ Model Viewer not available', 'error');
+            statusDiv.textContent = 'Model Viewer failed to load';
+            statusDiv.className = 'status error';
+        }
+        
+        // Add event listeners
+        modelViewer.addEventListener('load', () => {
+            log('✅ 3D Model loaded successfully', 'success');
+            statusDiv.textContent = '3D Model loaded successfully';
+            statusDiv.className = 'status success';
+        });
+        
+        modelViewer.addEventListener('error', (e) => {
+            log('❌ Failed to load 3D model: ' + e.detail, 'error');
+            statusDiv.textContent = 'Failed to load 3D model';
+            statusDiv.className = 'status error';
+        });
+        
+        modelViewer.addEventListener('progress', (e) => {
+            const progress = e.detail.totalProgress;
+            log(`🔄 Loading progress: ${Math.round(progress * 100)}%`);
+            statusDiv.textContent = `Loading 3D model: ${Math.round(progress * 100)}%`;
+        });
+        
+        // Test file accessibility
+        fetch('/uploads/3d-models/3d-model-1757475848360-8y2tu23nih.glb', { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    log(`✅ File accessible: ${response.status} ${response.statusText}`, 'success');
+                    log(`📁 Content-Type: ${response.headers.get('content-type')}`);
+                    log(`📏 Content-Length: ${response.headers.get('content-length')} bytes`);
+                } else {
+                    log(`❌ File not accessible: ${response.status} ${response.statusText}`, 'error');
+                }
+            })
+            .catch(error => {
+                log(`❌ Network error: ${error.message}`, 'error');
+            });
+    </script>
+</body>
+</html>

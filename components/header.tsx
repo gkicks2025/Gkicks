@@ -68,7 +68,12 @@ export function Header({ onSearch }: HeaderProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      router.push(`/?search=${encodeURIComponent(searchQuery.trim())}`)
+      try {
+        router.push(`/?search=${encodeURIComponent(searchQuery.trim())}`)
+      } catch (error) {
+        console.warn('Navigation error:', error)
+        window.location.href = `/?search=${encodeURIComponent(searchQuery.trim())}`
+      }
     }
     setIsMenuOpen(false)
   }
@@ -76,7 +81,12 @@ export function Header({ onSearch }: HeaderProps) {
   const handleSignOut = async () => {
     try {
       await signOut()
-      router.push("/")
+      try {
+        router.push("/")
+      } catch (error) {
+        console.warn('Navigation error:', error)
+        window.location.href = "/"
+      }
     } catch (error) {
       console.error("Error signing out:", error)
     }

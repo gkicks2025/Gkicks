@@ -399,9 +399,19 @@ export default function CartPage() {
   const handleOrderSuccessClose = () => {
     setShowOrderSuccess(false)
     if (user) {
-      router.push("/orders")
+      try {
+        router.push("/orders")
+      } catch (error) {
+        console.warn('Navigation error:', error)
+        window.location.href = "/orders"
+      }
     } else {
-      router.push("/")
+      try {
+        router.push("/")
+      } catch (error) {
+        console.warn('Navigation error:', error)
+        window.location.href = "/"
+      }
     }
   }
 
@@ -425,7 +435,14 @@ export default function CartPage() {
                 Add some products to get started.
               </p>
               <Button
-                onClick={() => router.push("/")}
+                onClick={() => {
+                  try {
+                    router.push("/")
+                  } catch (error) {
+                    console.warn('Navigation error:', error)
+                    window.location.href = "/"
+                  }
+                }}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
               >
                 Continue Shopping
@@ -582,7 +599,14 @@ export default function CartPage() {
                     <Button
                       variant="link"
                       className="p-0 h-auto text-blue-700 dark:text-blue-400 underline text-xs sm:text-sm"
-                      onClick={() => router.push("/auth")}
+                      onClick={() => {
+                        try {
+                          router.push("/auth")
+                        } catch (error) {
+                          console.warn('Navigation error:', error)
+                          window.location.href = "/auth"
+                        }
+                      }}
                     >
                       sign in
                     </Button>{" "}

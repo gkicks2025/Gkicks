@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Console Logger for 3D Viewer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #console { 
+            background: #000; 
+            color: #0f0; 
+            padding: 15px; 
+            height: 400px; 
+            overflow-y: auto; 
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .log { margin: 2px 0; }
+        .error { color: #f00; }
+        .warn { color: #ff0; }
+        .info { color: #0ff; }
+        button { 
+            margin: 10px 5px; 
+            padding: 10px 15px; 
+            background: #007acc; 
+            color: white; 
+            border: none; 
+            border-radius: 3px; 
+            cursor: pointer;
+        }
+        button:hover { background: #005a9e; }
+    </style>
+</head>
+<body>
+    <h1>3D Viewer Console Logger</h1>
+    <p>This page captures console logs from the 3D viewer component.</p>
+    
+    <button onclick="openProductPage()">Open Product Page</button>
+    <button onclick="clearConsole()">Clear Console</button>
+    <button onclick="testModelViewer()">Test Model Viewer Script</button>
+    
+    <div id="console"></div>
+    
+    <script>
+        const consoleDiv = document.getElementById('console');
+        
+        function addLog(message, type = 'log') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleDiv.appendChild(div);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        // Override console methods
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+        
+        console.log = function(...args) {
+            originalConsole.log.apply(console, args);
+            addLog(args.join(' '), 'info');
+        };
+        
+        console.error = function(...args) {
+            originalConsole.error.apply(console, args);
+            addLog(args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            originalConsole.warn.apply(console, args);
+            addLog(args.join(' '), 'warn');
+        };
+        
+        function clearConsole() {
+            consoleDiv.innerHTML = '';
+        }
+        
+        function openProductPage() {
+            addLog('Opening product page in new window...', 'info');
+            const newWindow = window.open('http://localhost:3000/product/18', '_blank');
+            
+            // Try to capture logs from the new window (limited by CORS)
+            if (newWindow) {
+                addLog('Product page opened successfully', 'info');
+            } else {
+                addLog('Failed to open product page - popup blocked?', 'error');
+            }
+        }
+        
+        function testModelViewer() {
+            addLog('Testing model-viewer script loading...', 'info');
+            
+            // Check if model-viewer is already loaded
+            if (window.customElements && window.customElements.get('model-viewer')) {
+                addLog('✅ model-viewer custom element is already available', 'info');
+                return;
+            }
+            
+            // Load model-viewer script
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js';
+            
+            script.onload = () => {
+                addLog('✅ model-viewer script loaded successfully', 'info');
+                
+                // Wait for custom element to be defined
+                const checkElement = setInterval(() => {
+                    if (window.customElements && window.customElements.get('model-viewer')) {
+                        addLog('✅ model-viewer custom element is now available', 'info');
+                        clearInterval(checkElement);
+                        
+                        // Test creating a model-viewer element
+                        testCreateModelViewer();
+                    }
+                }, 100);
+                
+                // Timeout after 10 seconds
+                setTimeout(() => {
+                    clearInterval(checkElement);
+                    addLog('⏰ Timeout waiting for model-viewer custom element', 'warn');
+                }, 10000);
+            };
+            
+            script.onerror = () => {
+                addLog('❌ Failed to load model-viewer script', 'error');
+            };
+            
+            document.head.appendChild(script);
+            addLog('📦 model-viewer script loading...', 'info');
+        }
+        
+        function testCreateModelViewer() {
+            addLog('🧪 Testing model-viewer element creation...', 'info');
+            
+            const testDiv = document.createElement('div');
+            testDiv.innerHTML = `
+                <model-viewer
+                    src="/uploads/3d-models/sambahin-moko.glb"
+                    alt="Test 3D model"
+                    camera-controls
+                    style="width: 300px; height: 300px; background: #f0f0f0;"
+                ></model-viewer>
+            `;
+            
+            const modelViewer = testDiv.querySelector('model-viewer');
+            if (modelViewer) {
+                addLog('✅ model-viewer element created successfully', 'info');
+                
+                modelViewer.addEventListener('load', () => {
+                    addLog('✅ Test model loaded successfully', 'info');
+                });
+                
+                modelViewer.addEventListener('error', (e) => {
+                    addLog('❌ Test model failed to load: ' + e.message, 'error');
+                });
+                
+                // Add to page
+                document.body.appendChild(testDiv);
+                addLog('🎯 Test model-viewer added to page', 'info');
+            } else {
+                addLog('❌ Failed to create model-viewer element', 'error');
+            }
+        }
+        
+        // Listen for messages from other windows
+        window.addEventListener('message', function(event) {
+            if (event.origin === 'http://localhost:3000') {
+                addLog('📨 Message from product page: ' + JSON.stringify(event.data), 'info');
+            }
+        });
+        
+        addLog('🚀 Console logger initialized', 'info');
+        addLog('Click "Test Model Viewer Script" to test the 3D viewer library', 'info');
+    </script>
+</body>
+</html>

@@ -161,14 +161,24 @@ export function AdminNotifications() {
   const handleViewOrder = (orderId: number) => {
     // Mark this specific notification as viewed
     markNotificationsAsViewed([orderId])
-    router.push(`/admin/orders?highlight=${orderId}`)
+    try {
+      router.push(`/admin/orders?highlight=${orderId}`)
+    } catch (error) {
+      console.warn('Navigation error:', error)
+      window.location.href = `/admin/orders?highlight=${orderId}`
+    }
   }
 
   const handleViewAllOrders = () => {
     // Mark all current notifications as viewed
     const orderIds = notifications.recentOrders.map(order => order.id)
     markNotificationsAsViewed(orderIds)
-    router.push('/admin/orders')
+    try {
+      router.push('/admin/orders')
+    } catch (error) {
+      console.warn('Navigation error:', error)
+      window.location.href = '/admin/orders'
+    }
   }
 
   const handleDropdownOpen = () => {

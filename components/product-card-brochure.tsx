@@ -68,7 +68,13 @@ export function ProductCardBrochure({ product, isLoggedIn }: ProductCardBrochure
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   
   const handleProductClick = () => {
-    router.push(`/product/${safeProduct.id}`)
+    try {
+      router.push(`/product/${safeProduct.id}`)
+    } catch (error) {
+      console.warn('Navigation error:', error)
+      // Fallback navigation
+      window.location.href = `/product/${safeProduct.id}`
+    }
   }
 
   // Get all available images (gallery_images first, then fallback to image_url or image)

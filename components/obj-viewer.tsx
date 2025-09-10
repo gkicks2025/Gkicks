@@ -24,6 +24,9 @@ export default function OBJViewer({
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const rendererRef = useRef<any>(null)
+  const sceneRef = useRef<any>(null)
+  const animationIdRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (!modelUrl) {
@@ -50,6 +53,10 @@ export default function OBJViewer({
           antialias: true,
           alpha: true
         })
+        
+        // Store references for cleanup
+        rendererRef.current = renderer
+        sceneRef.current = scene
         
         renderer.setSize(400, 400)
         renderer.setClearColor(0x000000, 0)
@@ -115,7 +122,7 @@ export default function OBJViewer({
             
             // Animation loop
             const animate = () => {
-              requestAnimationFrame(animate)
+              animationIdRef.current = requestAnimationFrame(animate)
               if (autoRotate) {
                 object.rotation.y += 0.01
               }
@@ -147,6 +154,38 @@ export default function OBJViewer({
     }
 
     loadThreeJS()
+    
+    // Cleanup function
+    return () => {
+      // Cancel animation frame
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current)
+        animationIdRef.current = null
+      }
+      
+      // Dispose of Three.js resources
+      if (rendererRef.current) {
+        rendererRef.current.dispose()
+        rendererRef.current = null
+      }
+      
+      if (sceneRef.current) {
+        // Dispose of all objects in the scene
+        sceneRef.current.traverse((object: any) => {
+          if (object.geometry) {
+            object.geometry.dispose()
+          }
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach((material: any) => material.dispose())
+            } else {
+              object.material.dispose()
+            }
+          }
+        })
+        sceneRef.current = null
+      }
+    }
   }, [modelUrl, autoRotate, onLoad, onError])
 
   if (isLoading) {

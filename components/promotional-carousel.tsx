@@ -99,7 +99,12 @@ export function PromotionalCarousel() {
   }
 
   const handleSignUp = () => {
-    router.push("/auth")
+    try {
+      router.push("/auth")
+    } catch (error) {
+      console.warn('Navigation error:', error)
+      window.location.href = "/auth"
+    }
   }
 
   if (loading) {

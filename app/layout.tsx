@@ -33,12 +33,12 @@ export default function RootLayout({
       <body className={inter.className}>
         <link 
           rel="preload" 
-          href="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.4.0/dist/model-viewer.min.js" 
+          href="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js" 
           as="script" 
           crossOrigin="anonymous"
         />
         <Script 
-          src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.4.0/dist/model-viewer.min.js"
+          src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"
           strategy="beforeInteractive"
           type="module"
         />

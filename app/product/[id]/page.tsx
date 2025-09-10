@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo, useRef } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { ReviewForm } from "@/components/review-form-modal"
-import { ThreeDProductViewer } from "@/components/3d-product-viewer"
+import { ThreeDProductViewer } from "@/components/3d-product-viewer-simple"
 
 import type { Product } from "@/lib/product-data"
 
@@ -43,6 +43,7 @@ export default function ProductPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [viewMode, setViewMode] = useState<'images' | '3d'>('images')
+  const fetchedProductIdRef = useRef<number | null>(null)
   
 
   
@@ -51,6 +52,9 @@ export default function ProductPage() {
     content: string
   }
   const [reviews] = useState<Review[]>([]) // Placeholder for future reviews
+
+  // Memoize product to prevent unnecessary re-renders
+  const memoizedProduct = useMemo(() => product, [product?.id])
 
   const isAuthenticated = !authLoading && !!user
 
@@ -61,15 +65,32 @@ export default function ProductPage() {
 
   // Load product data and initial views when mounted and productId changes
   useEffect(() => {
+    console.log('🔄 Product loading useEffect triggered - mounted:', mounted, 'productId:', productId)
     if (!mounted) return
+    if (fetchedProductIdRef.current === productId) {
+      console.log('🚀 Product already loaded, skipping fetch')
+      return
+    }
 
     async function loadProduct() {
+      console.log('📡 Fetching product data for ID:', productId)
       // Always fetch from API to ensure we have the latest data including 3D model URLs
       const fetchedProduct = await fetchProductByIdFromAPI(productId)
       const prod = fetchedProduct || undefined
       
-      setProduct(prod || null)
-      if (prod) setCurrentViews(prod.views || 0)
+      console.log('✅ Product data loaded:', prod?.name)
+      console.log('🎯 3D Model URL:', prod?.model_3d_url)
+      console.log('📁 3D Model Filename:', prod?.model_3d_filename)
+      
+      // Only update state if we actually got a different product
+      if (prod && prod.id !== fetchedProductIdRef.current) {
+        setProduct(prod)
+        setCurrentViews(prod.views || 0)
+        fetchedProductIdRef.current = prod.id
+      } else if (!prod) {
+        setProduct(null)
+        fetchedProductIdRef.current = null
+      }
     }
     
     loadProduct()
@@ -80,11 +101,13 @@ export default function ProductPage() {
     if (product && (!product.model_3d_url || product.model_3d_url.trim() === '')) {
       setViewMode('images')
     }
-  }, [product])
+  }, [product?.id, product?.model_3d_url])
 
   useEffect(() => {
+  console.log('👁️ View tracking useEffect triggered - mounted:', mounted, 'productId:', productId, 'isAuthenticated:', isAuthenticated, 'user?.id:', user?.id)
   if (!mounted || !product) return
   if (!isAuthenticated || !user?.id) return  // Guard clause: exit if no user or no id
+  if (hasViewed) return // Don't track view if already viewed
 
   const userId = String(user.id) // Now TypeScript knows user.id exists
 
@@ -99,6 +122,7 @@ export default function ProductPage() {
       if (newCount > 0) {
         setCurrentViews(newCount);
       }
+      setHasViewed(true); // Mark as viewed to prevent future calls
     } else {
       console.log("User has already viewed this product");
       setHasViewed(true);
@@ -106,21 +130,30 @@ export default function ProductPage() {
   }
 
   checkAndUpdateView()
-}, [mounted, product, productId, isAuthenticated, user])
+}, [mounted, productId, isAuthenticated, user?.id, hasViewed])
 
 
   useEffect(() => {
-    if (!product) return
+    if (!memoizedProduct) return
 
-    async function fetchStocks() {
+    function fetchStocks() {
       const stocks: { [color: string]: { [size: string]: number } } = {}
-      const colors = product?.colors && product?.colors.length > 0 ? product.colors : ["default"]
-      const sizes = product?.sizes || ["5", "6", "7", "8", "9", "10", "11", "12"]
+      const colors = memoizedProduct?.colors && memoizedProduct?.colors.length > 0 ? memoizedProduct.colors : ["default"]
+      const sizes = memoizedProduct?.sizes || ["5", "6", "7", "8", "9", "10", "11", "12"]
       
       for (const color of colors) {
         stocks[color] = {}
         for (const size of sizes) {
-          stocks[color][size] = await checkStock(productId, color, size);
+          // Use product data directly instead of making API calls
+          if (memoizedProduct?.variants && memoizedProduct.variants[color] && memoizedProduct.variants[color][size] !== undefined) {
+            stocks[color][size] = memoizedProduct.variants[color][size] || 0
+          } else if (memoizedProduct?.variants && Object.keys(memoizedProduct.variants).length > 0) {
+            // If general stock is available, assume reasonable stock for missing variants
+            stocks[color][size] = (memoizedProduct as any).stock_quantity > 0 ? Math.min((memoizedProduct as any).stock_quantity, 10) : 0
+          } else {
+            // Fall back to general stock_quantity if no variants structure exists
+            stocks[color][size] = (memoizedProduct as any)?.stock_quantity || 10
+          }
         }
       }
       
@@ -144,7 +177,7 @@ export default function ProductPage() {
     return () => {
       window.removeEventListener('inventoryUpdate', handleInventoryUpdate as EventListener)
     }
-  }, [product, productId])
+  }, [productId, product?.id])
 
   if (!mounted) {
     return (
@@ -154,7 +187,7 @@ export default function ProductPage() {
     )
   }
 
-  if (!product) {
+  if (!memoizedProduct) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-yellow-400 mb-2">Product Not Found</h1>
@@ -165,9 +198,9 @@ export default function ProductPage() {
     )
   }
 
-  // From here on, product is guaranteed to be not null
+  // From here on, memoizedProduct is guaranteed to be not null
 
-  const isWishlisted = isInWishlist(product.id)
+  const isWishlisted = isInWishlist(memoizedProduct.id)
   const currentStock = selectedColor && selectedSize ? stockLevels[selectedColor]?.[selectedSize] ?? 0 : 0
   const maxQuantity = Math.min(currentStock, 10)
 

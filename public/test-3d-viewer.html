@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Viewer Test</title>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        model-viewer {
+            width: 100%;
+            height: 500px;
+            background-color: #f0f0f0;
+        }
+        .info {
+            margin: 20px 0;
+            padding: 10px;
+            background: #e8f4fd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>3D Model Viewer Test</h1>
+    
+    <div class="info">
+        <h3>Testing GLB Model Loading</h3>
+        <p>Model URL: <code>/uploads/3d-models/3d-model-1757479007733-tqe0o56m9l.glb</code></p>
+        <p>Status: <span id="status">Loading...</span></p>
+    </div>
+
+    <model-viewer
+        src="/uploads/3d-models/3d-model-1757479007733-tqe0o56m9l.glb"
+        alt="Test 3D Model"
+        camera-controls
+        auto-rotate
+        preload
+        loading="eager"
+        reveal="auto"
+        environment-image="neutral"
+        shadow-intensity="1"
+        shadow-softness="0.5"
+        exposure="1"
+        tone-mapping="aces"
+        interaction-prompt="auto"
+    ></model-viewer>
+
+    <div class="info">
+        <h3>Console Logs</h3>
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const logsEl = document.getElementById('logs');
+        const modelViewer = document.querySelector('model-viewer');
+
+        function addLog(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.style.color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            logEntry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logsEl.appendChild(logEntry);
+            console.log(message);
+        }
+
+        // Check if model-viewer is available
+        if (window.customElements && window.customElements.get('model-viewer')) {
+            addLog('✅ model-viewer custom element is available', 'success');
+        } else {
+            addLog('❌ model-viewer custom element not found', 'error');
+        }
+
+        // Add event listeners
+        modelViewer.addEventListener('load', () => {
+            statusEl.textContent = 'Loaded Successfully!';
+            statusEl.style.color = 'green';
+            addLog('✅ Model loaded successfully!', 'success');
+        });
+
+        modelViewer.addEventListener('error', (e) => {
+            statusEl.textContent = 'Failed to Load';
+            statusEl.style.color = 'red';
+            addLog(`❌ Model failed to load: ${e.type}`, 'error');
+            console.error('Model viewer error:', e);
+        });
+
+        modelViewer.addEventListener('progress', (e) => {
+            if (e.detail && e.detail.totalProgress !== undefined) {
+                const progress = Math.round(e.detail.totalProgress * 100);
+                statusEl.textContent = `Loading... ${progress}%`;
+                addLog(`🔄 Loading progress: ${progress}%`);
+            }
+        });
+
+        // Test file accessibility
+        fetch('/uploads/3d-models/3d-model-1757479007733-tqe0o56m9l.glb', { method: 'HEAD' })
+            .then(response => {
+                addLog(`📁 File accessibility: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                addLog(`📏 Content-Length: ${response.headers.get('content-length')}`);
+                addLog(`🏷️ Content-Type: ${response.headers.get('content-type')}`);
+            })
+            .catch(error => {
+                addLog(`❌ File access error: ${error.message}`, 'error');
+            });
+
+        addLog('🔄 Test page initialized');
+    </script>
+</body>
+</html>

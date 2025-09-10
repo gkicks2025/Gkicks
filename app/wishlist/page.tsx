@@ -287,7 +287,14 @@ export default function WishlistPage() {
                       </Button>
                       <Button
                         variant="outline"
-                        onClick={() => router.push(`/product/${item.id}`)}
+                        onClick={() => {
+                          try {
+                            router.push(`/product/${item.id}`)
+                          } catch (error) {
+                            console.warn('Navigation error:', error)
+                            window.location.href = `/product/${item.id}`
+                          }
+                        }}
                         className="flex-1 text-xs py-2 border-border hover:bg-muted text-foreground hover:text-foreground"
                       >
                         View Details

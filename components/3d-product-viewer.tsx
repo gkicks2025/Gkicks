@@ -51,6 +51,7 @@ export function ThreeDProductViewer({
   fallbackImage,
   className = "" 
 }: ThreeDProductViewerProps) {
+  console.log('🚀 ThreeDProductViewer component rendered with modelUrl:', modelUrl)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [scriptError, setScriptError] = useState(false)
@@ -59,6 +60,7 @@ export function ThreeDProductViewer({
   const [zoom, setZoom] = useState(1)
   const [rotation, setRotation] = useState({ x: 0, y: 0 })
   const [isClient, setIsClient] = useState(false)
+  // Removed loadingTimeout - using infinite loading instead
   const viewerRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
@@ -85,77 +87,175 @@ export function ThreeDProductViewer({
   
   // Handle client-side rendering for Next.js SSR compatibility
   useEffect(() => {
+    console.log('🔄 ThreeDProductViewer: Component mounting...')
+    console.log('🔍 ThreeDProductViewer: has3DModel:', has3DModel)
+    console.log('🔍 ThreeDProductViewer: modelUrl:', modelUrl)
+    console.log('🔍 ThreeDProductViewer: fileFormat:', fileFormat)
+    console.log('🔍 ThreeDProductViewer: isWebViewerSupported:', isWebViewerSupported)
+    
     setIsClient(true)
-  }, [])
-
-  useEffect(() => {
-    if (has3DModel) {
-      console.log('3D Model URL:', modelUrl)
-      console.log('Has 3D Model:', has3DModel)
+    
+    // Load model-viewer script if not already loaded
+    if (typeof window !== 'undefined') {
+      console.log('🌐 ThreeDProductViewer: Window is available')
       
-      // Function to check and initialize model viewer
-      const initializeModelViewer = () => {
-        let attempts = 0
-        const maxAttempts = 300 // 15 seconds with 50ms intervals
-        
-        const checkModelViewer = () => {
-          attempts++
-          
-          if (typeof window !== 'undefined' && window.customElements && window.customElements.get('model-viewer')) {
-            console.log('model-viewer is available')
-            setIsLoading(false)
-            setHasError(false)
+      // Check if model-viewer is already loaded
+      if (window.customElements && window.customElements.get('model-viewer')) {
+        console.log('✅ ThreeDProductViewer: model-viewer already loaded')
+        setScriptError(false)
+        return
+      }
+
+      // Check if script is already in the document
+      const existingScript = document.querySelector('script[src*="model-viewer"]')
+      if (existingScript) {
+        console.log('🔄 ThreeDProductViewer: model-viewer script already exists, waiting for load')
+        // Wait for the existing script to load
+        const checkInterval = setInterval(() => {
+          if (window.customElements && window.customElements.get('model-viewer')) {
+            console.log('✅ ThreeDProductViewer: model-viewer loaded from existing script')
             setScriptError(false)
-            return
+            clearInterval(checkInterval)
           }
-          
-          if (attempts >= maxAttempts) {
-            console.error('model-viewer failed to load after timeout')
-            setScriptError(true)
-            setHasError(true)
-            setIsLoading(false)
-            return
-          }
-          
-          setTimeout(checkModelViewer, 50)
-        }
+        }, 100)
         
-        checkModelViewer()
+        // Clear interval after 10 seconds to prevent infinite checking
+        setTimeout(() => clearInterval(checkInterval), 10000)
+        return
       }
       
-      // Initialize model viewer
-      initializeModelViewer()
+      console.log('📦 ThreeDProductViewer: Loading model-viewer script...')
+      const script = document.createElement('script')
+      script.type = 'module'
+      script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js'
       
-      console.log('Initializing model-viewer...')
-      setIsLoading(true)
+      script.onload = () => {
+        console.log('✅ ThreeDProductViewer: Model-viewer script loaded successfully')
+        // Wait a bit for the custom element to be defined
+        setTimeout(() => {
+          if (window.customElements && window.customElements.get('model-viewer')) {
+            console.log('✅ ThreeDProductViewer: model-viewer custom element is ready')
+            setScriptError(false)
+          } else {
+            console.warn('⚠️ ThreeDProductViewer: model-viewer script loaded but custom element not ready')
+          }
+        }, 500)
+      }
       
-      // Wait for model-viewer to load with more frequent checks
-      const checkModelViewer = setInterval(() => {
-        if (typeof window !== 'undefined' && window.customElements && window.customElements.get('model-viewer')) {
-          console.log('model-viewer is now available')
-          setIsLoading(false)
-          setHasError(false)
-          clearInterval(checkModelViewer)
-        }
-      }, 50) // Check every 50ms for faster response
-      
-      // Timeout after 15 seconds (increased timeout)
-      const timeout = setTimeout(() => {
-        clearInterval(checkModelViewer)
-        console.error('model-viewer failed to load after 15 seconds')
+      script.onerror = (error) => {
+        console.error('❌ ThreeDProductViewer: Failed to load model-viewer script:', error)
+        setScriptError(true)
         setHasError(true)
         setIsLoading(false)
-      }, 15000)
-      
-      // Cleanup function
-      return () => {
-        clearInterval(checkModelViewer)
-        clearTimeout(timeout)
       }
-    } else {
-      setIsLoading(false)
+      
+      document.head.appendChild(script)
+    }
+    
+    // Log initial 3D model loading info
+    if (has3DModel && modelUrl) {
+      console.log('🔄 ThreeDProductViewer: Initializing 3D model loading for:', modelUrl)
+      console.log('🌐 ThreeDProductViewer: Full URL will be:', window.location.origin + modelUrl)
     }
   }, [has3DModel, modelUrl])
+
+  // Set up model-viewer event listeners
+  useEffect(() => {
+    console.log('🎯 ThreeDProductViewer: Setting up model-viewer event listeners')
+    if (!has3DModel || !isClient) {
+      console.log('⏭️ ThreeDProductViewer: Skipping event listeners - no 3D model or not client-side')
+      return
+    }
+
+    const checkForViewer = () => {
+      console.log('🔍 ThreeDProductViewer: Checking for model-viewer element')
+      
+      // First check if model-viewer custom element is defined
+      if (!window.customElements?.get('model-viewer')) {
+        console.log('⏳ ThreeDProductViewer: model-viewer custom element not yet defined')
+        return null
+      }
+      
+      const viewer = viewerRef.current?.querySelector('model-viewer')
+      
+      if (viewer) {
+        console.log('✅ ThreeDProductViewer: Found model-viewer element, attaching listeners')
+        console.log('📍 ThreeDProductViewer: Model URL being loaded:', modelUrl)
+        
+        const handleLoad = () => {
+          console.log('🎉 ThreeDProductViewer: Model loaded successfully')
+          setIsLoading(false)
+          setHasError(false)
+        }
+        
+        const handleError = (event: any) => {
+          console.error('❌ ThreeDProductViewer: Model loading error:', event)
+          console.error('❌ ThreeDProductViewer: Error details:', {
+            type: event.type,
+            target: event.target,
+            detail: event.detail,
+            modelUrl: modelUrl
+          })
+          setHasError(true)
+          setIsLoading(false)
+        }
+        
+        const handleProgress = (event: any) => {
+          const progress = event.detail?.totalProgress || 0
+          console.log('📊 ThreeDProductViewer: Loading progress:', Math.round(progress * 100) + '%')
+        }
+        
+        viewer.addEventListener('load', handleLoad)
+        viewer.addEventListener('error', handleError)
+        viewer.addEventListener('progress', handleProgress)
+        
+        // Also listen for model-viewer specific events
+        viewer.addEventListener('model-visibility', (event: any) => {
+          console.log('👁️ ThreeDProductViewer: Model visibility changed:', event.detail)
+        })
+        
+        return () => {
+          console.log('🧹 ThreeDProductViewer: Cleaning up event listeners')
+          viewer.removeEventListener('load', handleLoad)
+          viewer.removeEventListener('error', handleError)
+          viewer.removeEventListener('progress', handleProgress)
+        }
+      } else {
+        console.log('⏳ ThreeDProductViewer: model-viewer element not found yet, will retry')
+        return null
+      }
+    }
+
+    // Try to find the viewer immediately
+    const cleanup = checkForViewer()
+    if (cleanup) return cleanup
+
+    // If not found, set up an interval to check periodically
+    console.log('⏰ ThreeDProductViewer: Setting up interval to check for model-viewer element')
+    const interval = setInterval(() => {
+      const cleanup = checkForViewer()
+      if (cleanup) {
+        clearInterval(interval)
+        return cleanup
+      }
+    }, 100)
+
+    // Clean up interval after 15 seconds
+    const timeout = setTimeout(() => {
+      console.log('⏰ ThreeDProductViewer: Timeout reached, stopping model-viewer search')
+      clearInterval(interval)
+      if (!viewerRef.current?.querySelector('model-viewer')) {
+        console.error('❌ ThreeDProductViewer: Failed to initialize model-viewer after 15 seconds')
+        setHasError(true)
+        setIsLoading(false)
+      }
+    }, 15000)
+
+    return () => {
+      clearInterval(interval)
+      clearTimeout(timeout)
+    }
+  }, [has3DModel, isClient, modelUrl])
 
   const handleAutoRotateToggle = () => {
     setIsAutoRotate(!isAutoRotate)
@@ -321,50 +421,33 @@ export function ThreeDProductViewer({
                   </div>
                 ) : isWebViewerSupported ? (
                   /* GLB/GLTF Model Viewer */
-                  <Suspense fallback={
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="animate-pulse bg-gray-200 w-full h-full rounded" />
-                    </div>
-                  }>
-                    {React.createElement('model-viewer', {
-                      src: modelUrl,
-                      alt: `3D model of ${productName}`,
-                      'auto-rotate': isAutoRotate,
-                      'camera-controls': true,
-                      'disable-zoom': false,
-                      'disable-pan': false,
-                      style: {
-                        width: '100%',
-                        height: '100%',
-                        transform: `scale(${zoom})`,
-                        transition: 'transform 0.3s ease',
-                        backgroundColor: 'transparent'
-                      },
-                      loading: "eager",
-                      reveal: "auto",
-                      'environment-image': "neutral",
-                      'shadow-intensity': "1",
-                      'shadow-softness': "0.5",
-                      exposure: "1",
-                      'tone-mapping': "aces",
-                      'interaction-prompt': "auto",
-                      'ar': false,
-                      'ar-modes': "webxr scene-viewer quick-look",
-                      onLoad: () => {
-                        console.log('3D model loaded successfully:', modelUrl)
-                        setIsLoading(false)
-                        setHasError(false)
-                      },
-                      onError: (e: Event) => {
-                        console.error('Failed to load 3D model:', modelUrl, e)
-                        setHasError(true)
-                        setIsLoading(false)
-                      },
-                      onProgress: (e: any) => {
-                        console.log('3D model loading progress:', e.detail?.totalProgress || 'unknown')
-                      }
-                    } as any)}
-                  </Suspense>
+                  <div className="w-full h-full relative">
+                    {isClient && (
+                      <div 
+                        ref={viewerRef}
+                        dangerouslySetInnerHTML={{
+                          __html: `
+                            <model-viewer
+                              src="${modelUrl}"
+                              alt="3D model of ${productName}"
+                              ${isAutoRotate ? 'auto-rotate' : ''}
+                              camera-controls
+                              preload
+                              loading="eager"
+                              reveal="auto"
+                              environment-image="neutral"
+                              shadow-intensity="1"
+                              shadow-softness="0.5"
+                              exposure="1"
+                              tone-mapping="aces"
+                              interaction-prompt="auto"
+                              style="width: 100%; height: 100%; transform: scale(${zoom}); transition: transform 0.3s ease; background-color: transparent;"
+                            ></model-viewer>
+                          `
+                        }}
+                      />
+                    )}
+                  </div>
                 ) : isOBJFormat ? (
                   /* OBJ Format Handler */
                   <Suspense fallback={

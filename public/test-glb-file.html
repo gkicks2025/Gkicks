@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test GLB File</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        model-viewer {
+            width: 100%;
+            height: 500px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 2px 0;
+        }
+        .log-entry.error {
+            color: #dc3545;
+        }
+        .log-entry.success {
+            color: #28a745;
+        }
+        .log-entry.info {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GLB File Test - Sambahin Moko</h1>
+        <div id="status" class="status loading">Initializing 3D model viewer...</div>
+        
+        <model-viewer
+            id="modelViewer"
+            src="/uploads/3d-models/3d-model-1757479007733-tqe0o56m9l.glb"
+            alt="Sambahin Moko 3D Model"
+            auto-rotate
+            camera-controls
+            shadow-intensity="1"
+            exposure="1"
+            shadow-softness="0.5"
+            environment-image="neutral"
+            loading="eager">
+        </model-viewer>
+        
+        <div class="log" id="logContainer">
+            <strong>Debug Log:</strong>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const logDiv = document.getElementById('log');
+        const modelViewer = document.getElementById('modelViewer');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // Test file accessibility first
+        log('🔍 Testing file accessibility...');
+        fetch('/uploads/3d-models/3d-model-1757479007733-tqe0o56m9l.glb', { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    log(`✅ File accessible: ${response.status} ${response.statusText}`, 'success');
+                    log(`📁 Content-Type: ${response.headers.get('content-type')}`);
+                    log(`📏 Content-Length: ${response.headers.get('content-length')} bytes`);
+                } else {
+                    log(`❌ File not accessible: ${response.status} ${response.statusText}`, 'error');
+                }
+            })
+            .catch(error => {
+                log(`❌ Network error: ${error.message}`, 'error');
+            });
+        
+        // Model viewer event listeners
+        modelViewer.addEventListener('load', () => {
+            log('✅ 3D model loaded successfully!', 'success');
+            statusDiv.textContent = '3D model loaded successfully!';
+            statusDiv.className = 'status success';
+        });
+        
+        modelViewer.addEventListener('error', (e) => {
+            log('❌ Failed to load 3D model: ' + JSON.stringify(e.detail), 'error');
+            statusDiv.textContent = 'Failed to load 3D model';
+            statusDiv.className = 'status error';
+        });
+        
+        modelViewer.addEventListener('progress', (e) => {
+            const progress = e.detail.totalProgress;
+            log(`🔄 Loading progress: ${Math.round(progress * 100)}%`);
+            statusDiv.textContent = `Loading 3D model: ${Math.round(progress * 100)}%`;
+        });
+        
+        modelViewer.addEventListener('model-visibility', (e) => {
+            log(`👁️ Model visibility changed: ${e.detail.visible}`);
+        });
+        
+        // Check if model-viewer is loaded
+        if (customElements.get('model-viewer')) {
+            log('✅ model-viewer custom element is available', 'success');
+        } else {
+            log('⏳ Waiting for model-viewer to load...');
+            customElements.whenDefined('model-viewer').then(() => {
+                log('✅ model-viewer custom element loaded', 'success');
+            });
+        }
+        
+        // Timeout check
+        setTimeout(() => {
+            if (statusDiv.className === 'status loading') {
+                log('⏰ Loading timeout after 30 seconds', 'error');
+                statusDiv.textContent = 'Loading timeout - check console for details';
+                statusDiv.className = 'status error';
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

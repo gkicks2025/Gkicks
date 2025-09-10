@@ -92,12 +92,24 @@ export function ProductCard({ product, onViewUpdate }: ProductCardProps) {
   }
 
   const handleProductClick = () => {
-    router.push(`/product/${safeProduct.id}`)
+    try {
+      router.push(`/product/${safeProduct.id}`)
+    } catch (error) {
+      console.warn('Navigation error:', error)
+      // Fallback navigation
+      window.location.href = `/product/${safeProduct.id}`
+    }
   }
 
   const handleNameClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    router.push(`/product/${safeProduct.id}`)
+    try {
+      router.push(`/product/${safeProduct.id}`)
+    } catch (error) {
+      console.warn('Navigation error:', error)
+      // Fallback navigation
+      window.location.href = `/product/${safeProduct.id}`
+    }
   }
 
   useEffect(() => {

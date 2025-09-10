@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Viewer Test</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        model-viewer {
+            width: 100%;
+            height: 500px;
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+        }
+        .info {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 4px;
+            border-left: 4px solid #2196f3;
+        }
+        .error {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+        .success {
+            background: #e8f5e8;
+            border-left-color: #4caf50;
+        }
+        .logs {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Model Viewer Test - Product 18</h1>
+        
+        <div class="info">
+            <strong>Testing GLB file:</strong> /uploads/3d-models/3d-model-1757479007733-tqe0o56m9l.glb<br>
+            <strong>Product:</strong> sambahin moko (Jordan.glb)
+        </div>
+        
+        <model-viewer 
+            id="model-viewer"
+            src="/uploads/3d-models/3d-model-1757479007733-tqe0o56m9l.glb"
+            alt="3D model of sambahin moko"
+            auto-rotate
+            camera-controls
+            loading="eager"
+            reveal="auto">
+        </model-viewer>
+        
+        <div>
+            <button onclick="testDirectAccess()">Test Direct File Access</button>
+            <button onclick="reloadModel()">Reload Model</button>
+            <button onclick="clearLogs()">Clear Logs</button>
+        </div>
+        
+        <div id="status" class="info">Loading model...</div>
+        
+        <div class="logs" id="logs"></div>
+    </div>
+
+    <script>
+        const modelViewer = document.getElementById('model-viewer');
+        const statusDiv = document.getElementById('status');
+        const logsDiv = document.getElementById('logs');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            console.log(logEntry);
+            
+            const logElement = document.createElement('div');
+            logElement.textContent = logEntry;
+            logElement.style.color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            logsDiv.appendChild(logElement);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+        
+        function updateStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = `info ${type}`;
+        }
+        
+        // Model viewer event listeners
+        modelViewer.addEventListener('load', () => {
+            log('✅ Model loaded successfully!', 'success');
+            updateStatus('Model loaded successfully!', 'success');
+        });
+        
+        modelViewer.addEventListener('error', (event) => {
+            log(`❌ Model loading error: ${event.type}`, 'error');
+            log(`❌ Error details: ${JSON.stringify(event.detail || 'No details')}`, 'error');
+            updateStatus('Failed to load model', 'error');
+        });
+        
+        modelViewer.addEventListener('progress', (event) => {
+            const progress = event.detail?.totalProgress || 0;
+            const percentage = Math.round(progress * 100);
+            log(`📊 Loading progress: ${percentage}%`);
+            updateStatus(`Loading... ${percentage}%`);
+        });
+        
+        modelViewer.addEventListener('model-visibility', (event) => {
+            log(`👁️ Model visibility: ${event.detail?.visible}`);
+        });
+        
+        // Test functions
+        function testDirectAccess() {
+            log('🔍 Testing direct file access...');
+            fetch('/uploads/3d-models/3d-model-1757479007733-tqe0o56m9l.glb')
+                .then(response => {
+                    if (response.ok) {
+                        log(`✅ File accessible - Status: ${response.status}, Size: ${response.headers.get('content-length')} bytes`, 'success');
+                        log(`📄 Content-Type: ${response.headers.get('content-type')}`);
+                    } else {
+                        log(`❌ File not accessible - Status: ${response.status}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    log(`❌ Fetch error: ${error.message}`, 'error');
+                });
+        }
+        
+        function reloadModel() {
+            log('🔄 Reloading model...');
+            updateStatus('Reloading model...');
+            const currentSrc = modelViewer.src;
+            modelViewer.src = '';
+            setTimeout(() => {
+                modelViewer.src = currentSrc;
+            }, 100);
+        }
+        
+        function clearLogs() {
+            logsDiv.innerHTML = '';
+        }
+        
+        // Initial setup
+        log('🚀 Model viewer test page loaded');
+        log(`📍 Model URL: ${modelViewer.src}`);
+        
+        // Test if model-viewer is defined
+        if (customElements.get('model-viewer')) {
+            log('✅ model-viewer custom element is defined', 'success');
+        } else {
+            log('❌ model-viewer custom element not defined', 'error');
+        }
+        
+        // Auto-test file access on load
+        setTimeout(testDirectAccess, 1000);
+    </script>
+</body>
+</html>
