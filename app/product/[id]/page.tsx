@@ -1,14 +1,11 @@
 "use client"
 
-export const dynamic = 'force-dynamic'
-
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Heart, ShoppingCart, Minus, Plus, Eye, Star, MessageSquare } from "lucide-react"
+import { Heart, ShoppingCart, Minus, Plus, Eye, Star, MessageSquare, Move3D, Image as ImageIcon } from "lucide-react"
 import { useCart } from "@/contexts/cart-context"
 import { useWishlist } from "@/contexts/wishlist-context"
 import { useAuth } from "@/contexts/auth-context"
@@ -18,8 +15,11 @@ import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { ReviewForm } from "@/components/review-form-modal"
-import ModelViewer3D from "@/components/3d-model-viewer"
+import { ThreeDProductViewer } from "@/components/3d-product-viewer"
+
 import type { Product } from "@/lib/product-data"
+
+
 
 export default function ProductPage() {
   const params = useParams()
@@ -42,6 +42,7 @@ export default function ProductPage() {
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [viewMode, setViewMode] = useState<'images' | '3d'>('images')
   
 
   
@@ -73,6 +74,13 @@ export default function ProductPage() {
     
     loadProduct()
   }, [mounted, productId])
+
+  // Reset view mode to 'images' if product doesn't have 3D model
+  useEffect(() => {
+    if (product && (!product.model_3d_url || product.model_3d_url.trim() === '')) {
+      setViewMode('images')
+    }
+  }, [product])
 
   useEffect(() => {
   if (!mounted || !product) return
@@ -210,6 +218,18 @@ export default function ProductPage() {
     navy: "bg-blue-900",
   }
 
+  // Early return if product is not loaded yet
+  if (!mounted || !product) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-yellow-400 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading product...</p>
+        </div>
+      </div>
+    )
+  }
+
   const savingsAmount = product.originalPrice ? product.originalPrice - product.price : 0
 
   // Use gallery_images if available, otherwise show single main image
@@ -341,84 +361,97 @@ export default function ProductPage() {
       <div className="flex-1 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
-            {/* Product Images */}
+            {/* Product Images & 3D Viewer */}
             <div className="space-y-3 sm:space-y-4">
-              {/* Main Image */}
-              <div className="relative aspect-square bg-muted rounded-lg overflow-hidden border-2 sm:border-4 border-yellow-400 group">
-                <Image
-                  src={productImages[selectedImageIndex]?.src || product.image_url || product.image}
-                  alt={productImages[selectedImageIndex]?.alt || product.name}
-                  width={600}
-                  height={600}
-                  className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
-                  priority
-                />
+              {/* View Mode Toggle */}
+              <div className="flex items-center justify-center space-x-2 mb-4">
+                <Button
+                  variant={viewMode === 'images' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('images')}
+                  className={`flex items-center space-x-2 ${
+                    viewMode === 'images'
+                      ? 'bg-yellow-400 text-black hover:bg-yellow-500'
+                      : 'border-gray-300 dark:border-gray-600 hover:border-yellow-400'
+                  }`}
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Images</span>
+                </Button>
+                {/* Only show 3D View button if 3D model is available */}
+                {product.model_3d_url && product.model_3d_url.trim() !== '' && (
+                  <Button
+                    variant={viewMode === '3d' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('3d')}
+                    className={`flex items-center space-x-2 ${
+                      viewMode === '3d'
+                        ? 'bg-yellow-400 text-black hover:bg-yellow-500'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-yellow-400'
+                    }`}
+                  >
+                    <Move3D className="w-4 h-4" />
+                    <span>3D View</span>
+                  </Button>
+                )}
               </div>
 
-              {/* Thumbnail Images - Only show if there are multiple images */}
-              {productImages.length > 1 && (
-                <div className="grid grid-cols-5 gap-2 sm:gap-3">
-                  {productImages.map((image, index) => (
-                    <div
-                      key={index}
-                      className={`thumbnail-image relative aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer border-2 sm:border-3 transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
-                        selectedImageIndex === index
-                          ? "border-yellow-400 ring-2 sm:ring-3 ring-yellow-400 ring-offset-1 sm:ring-offset-2 shadow-lg"
-                          : "border-gray-200 dark:border-gray-700 hover:border-yellow-300"
-                      }`}
-                      onClick={() => handleImageSelect(index)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          handleImageSelect(index)
-                        }
-                      }}
-                    >
-                      <Image
-                        src={image.src}
-                        alt={image.alt}
-                        width={150}
-                        height={150}
-                        className="w-full h-full object-cover transition-all duration-300"
-                      />
+              {/* Conditional Content Based on View Mode */}
+              {viewMode === 'images' ? (
+                <>
+                  {/* Main Image */}
+                  <div className="relative aspect-square bg-muted rounded-lg overflow-hidden border-2 sm:border-4 border-yellow-400 group">
+                    <Image
+                      src={productImages[selectedImageIndex]?.src || product.image_url || product.image}
+                      alt={productImages[selectedImageIndex]?.alt || product.name}
+                      width={600}
+                      height={600}
+                      className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+                      priority
+                    />
+                  </div>
+
+                  {/* Thumbnail Images - Only show if there are multiple images */}
+                  {productImages.length > 1 && (
+                    <div className="grid grid-cols-5 gap-2 sm:gap-3">
+                      {productImages.map((image, index) => (
+                        <div
+                          key={index}
+                          className={`thumbnail-image relative aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer border-2 sm:border-3 transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
+                            selectedImageIndex === index
+                              ? "border-yellow-400 ring-2 sm:ring-3 ring-yellow-400 ring-offset-1 sm:ring-offset-2 shadow-lg"
+                              : "border-gray-200 dark:border-gray-700 hover:border-yellow-300"
+                          }`}
+                          onClick={() => handleImageSelect(index)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              handleImageSelect(index)
+                            }
+                          }}
+                        >
+                          <Image
+                            src={image.src}
+                            alt={image.alt}
+                            width={150}
+                            height={150}
+                            className="w-full h-full object-cover transition-all duration-300"
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
+              ) : (
+                /* 3D Viewer */
+                <ThreeDProductViewer
+                  modelUrl={product.model_3d_url}
+                  productName={product.name}
+                  fallbackImage={productImages[0]?.src || product.image_url || product.image}
+                  className="w-full"
+                />
               )}
-
-              {/* 3D Model Viewer */}
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">3D Model View</h3>
-                {product.model_3d_url ? (
-                   <ModelViewer3D
-                     modelUrl={product.model_3d_url}
-                     filename={product.model_3d_filename}
-                     productColors={product.colors || []}
-                   />
-                 ) : (
-                   <div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center p-6">
-                     <div className="text-center space-y-4">
-                       <div className="w-16 h-16 mx-auto bg-yellow-400 rounded-full flex items-center justify-center">
-                         <svg className="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                         </svg>
-                       </div>
-                       <div>
-                         <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Interactive 3D Model</h4>
-                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">No 3D model available for this product</p>
-                         <div className="inline-flex items-center px-4 py-2 bg-gray-400 text-white rounded-lg font-medium text-sm cursor-not-allowed">
-                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                           </svg>
-                           Not Available
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 )}
-              </div>
             </div>
 
             {/* Product Details */}

@@ -50,6 +50,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/nodemailer": "^7.0.1",
+    "@types/three": "^0.180.0",
     "adm-zip": "^0.5.16",
     "ai": "latest",
     "autoprefixer": "^10.4.20",

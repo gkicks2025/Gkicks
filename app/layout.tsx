@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import { Providers } from '@/components/providers'
 import { Toaster } from '@/components/toaster'
@@ -30,6 +31,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <link 
+          rel="preload" 
+          href="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.4.0/dist/model-viewer.min.js" 
+          as="script" 
+          crossOrigin="anonymous"
+        />
+        <Script 
+          src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.4.0/dist/model-viewer.min.js"
+          strategy="beforeInteractive"
+          type="module"
+        />
         <Providers>
           <Header />
           {children}

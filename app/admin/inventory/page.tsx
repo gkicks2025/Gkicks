@@ -2091,14 +2091,14 @@ export default function InventoryPage() {
 
               {/* 3D Model Upload */}
               <div className="space-y-2">
-                <Label className="text-foreground">Update 3D Model (OBJ File)</Label>
+                <Label className="text-foreground">Update 3D Model (All Formats Supported)</Label>
                 <div className="border-2 border-dashed border-blue-200 dark:border-blue-700 rounded-lg p-6 text-center bg-blue-50 dark:bg-blue-900/10">
                   <div className="mx-auto h-12 w-12 text-blue-600 dark:text-blue-400 mb-4 flex items-center justify-center">
                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
                       <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                     </svg>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <Button
                       type="button"
                       variant="outline"
@@ -2121,7 +2121,7 @@ export default function InventoryPage() {
                     <input
                       id="edit-model-upload"
                       type="file"
-                      accept=".obj,.mtl,.zip,.fbx,.gltf,.glb"
+                      accept=".obj,.mtl,.zip,.gltf,.glb,.jpg,.jpeg,.png,.bmp,.tga"
                       multiple
                       className="hidden"
                       onChange={(e) => {
@@ -2133,16 +2133,39 @@ export default function InventoryPage() {
                         }
                       }}
                     />
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
-                      {formData.model_3d_url && !remove3DModel 
-                        ? "Upload new 3D model to replace current one" 
-                        : "Upload 3D model for this product"}
-                    </p>
+                    <div className="text-sm space-y-2">
+                      <p className="text-blue-700 dark:text-blue-300 font-medium">
+                        {formData.model_3d_url && !remove3DModel 
+                          ? "Upload new 3D model to replace current one" 
+                          : "Upload 3D model for this product"}
+                      </p>
+                      <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 text-left">
+                        <p className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Supported Formats:</p>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <p className="font-medium text-green-600 dark:text-green-400">✓ Web Viewer Ready:</p>
+                            <p className="text-gray-600 dark:text-gray-400">GLB, GLTF</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-blue-600 dark:text-blue-400">✓ Upload Supported:</p>
+                            <p className="text-gray-600 dark:text-gray-400">OBJ, MTL, ZIP</p>
+                          </div>
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <strong>Tip:</strong> GLB/GLTF files provide the best web viewing experience with interactive 3D controls.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   {selected3DModel && (
-                    <div className="mt-4">
-                      <p className="text-sm text-green-600 dark:text-green-400">
-                        New model selected: {Array.isArray(selected3DModel) ? 
+                    <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                        ✓ New model selected:
+                      </p>
+                      <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                        {Array.isArray(selected3DModel) ? 
                           selected3DModel.map(f => f.name).join(', ') : 
                           selected3DModel.name}
                       </p>
