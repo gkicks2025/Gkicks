@@ -124,32 +124,43 @@ export function ThreeDProductViewer({
         return
       }
       
-      console.log('📦 ThreeDProductViewer: Loading model-viewer script...')
-      const script = document.createElement('script')
-      script.type = 'module'
-      script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js'
-      
-      script.onload = () => {
-        console.log('✅ ThreeDProductViewer: Model-viewer script loaded successfully')
-        // Wait a bit for the custom element to be defined
-        setTimeout(() => {
-          if (window.customElements && window.customElements.get('model-viewer')) {
-            console.log('✅ ThreeDProductViewer: model-viewer custom element is ready')
-            setScriptError(false)
-          } else {
-            console.warn('⚠️ ThreeDProductViewer: model-viewer script loaded but custom element not ready')
+      console.log('📦 ThreeDProductViewer: Loading model-viewer component (prefer local, fallback to CDN)')
+      const load = async () => {
+        try {
+          await import('@google/model-viewer')
+          console.log('✅ ThreeDProductViewer: Loaded @google/model-viewer via npm package')
+          setScriptError(false)
+        } catch (err) {
+          console.warn('⚠️ ThreeDProductViewer: Import failed, falling back to CDN', err)
+          const existing = document.querySelector(
+            'script[src*="@google/model-viewer"],script[src*="model-viewer.min.js"]'
+          ) as HTMLScriptElement | null
+          if (!existing) {
+            const script = document.createElement('script')
+            script.type = 'module'
+            script.src = 'https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js'
+            script.onload = () => {
+              console.log('✅ ThreeDProductViewer: Model-viewer script loaded successfully from CDN')
+              setTimeout(() => {
+                if (window.customElements && window.customElements.get('model-viewer')) {
+                  console.log('✅ ThreeDProductViewer: model-viewer custom element is ready')
+                  setScriptError(false)
+                } else {
+                  console.warn('⚠️ ThreeDProductViewer: model-viewer script loaded but custom element not ready')
+                }
+              }, 500)
+            }
+            script.onerror = (error) => {
+              console.error('❌ ThreeDProductViewer: Failed to load model-viewer script from CDN:', error)
+              setScriptError(true)
+              setHasError(true)
+              setIsLoading(false)
+            }
+            document.head.appendChild(script)
           }
-        }, 500)
+        }
       }
-      
-      script.onerror = (error) => {
-        console.error('❌ ThreeDProductViewer: Failed to load model-viewer script:', error)
-        setScriptError(true)
-        setHasError(true)
-        setIsLoading(false)
-      }
-      
-      document.head.appendChild(script)
+      load()
     }
     
     // Log initial 3D model loading info

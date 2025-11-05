@@ -140,6 +140,17 @@ export function ThreeDProductViewer({
       return
     }
 
+    // Prefer local npm package if available, fallback to CDN
+    (async () => {
+      try {
+        await import('@google/model-viewer')
+        setScriptLoaded(true)
+        return
+      } catch {
+        // Continue to CDN fallback
+      }
+    })()
+
     // Check if script already exists
     if (document.querySelector('script[src*="model-viewer"]')) {
       const checkInterval = setInterval(() => {
@@ -155,13 +166,13 @@ export function ThreeDProductViewer({
     // Load the script with preload for faster loading
     const script = document.createElement('script')
     script.type = 'module'
-    script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js'
+    script.src = 'https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js'
     script.crossOrigin = 'anonymous'
     
     // Add preload link for even faster loading
     const preloadLink = document.createElement('link')
     preloadLink.rel = 'modulepreload'
-    preloadLink.href = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js'
+    preloadLink.href = 'https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js'
     preloadLink.crossOrigin = 'anonymous'
     document.head.appendChild(preloadLink)
     
